@@ -6,20 +6,17 @@
     "license": "MIT",
     "main": "./build/Release/cloudcv",
 
-    "scripts": 
-    {
-        "preinstall": "node-gyp clean rebuild",
+    "scripts": {
+        "preinstall": "node-gyp clean rebuild"
     },
     
-    "keywords": 
-    [
+    "keywords": [
         "opencv",
         "computer",
-        "vision",
+        "vision"
     ],
 
-    "repository":
-    {
+    "repository": {
         "type": "git",
         "url": "https://github.com/BloodAxe/CloudCVBackend.git"
     }
