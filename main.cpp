@@ -33,5 +33,5 @@ void RegisterModule(Handle<Object> target)
     target->Set(String::NewSymbol("buildInformation"), FunctionTemplate::New(buildInformation)->GetFunction());
 }
 
-NODE_MODULE(cv, RegisterModule);
+NODE_MODULE(cloudcv, RegisterModule);
 }

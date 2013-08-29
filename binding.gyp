@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "cloudcv-backend",
+      "target_name": "cloudcv",
       "sources": [ "main.cpp" ],
 
       'libraries': [
