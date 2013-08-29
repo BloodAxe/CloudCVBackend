@@ -1,0 +1,26 @@
+{
+    "name": "cv",
+    "version": "1.0.0",
+    "description": "CloudCV backend module",
+    "author": "Eugene Khvedchenya <ekhvedchenya@gmail.com>",
+    "license": "MIT",
+    "main": "./lib/opencv",
+
+    "scripts": 
+    {
+        "preinstall": "node-gyp clean rebuild",
+    },
+    
+    "keywords": 
+    [
+        "opencv",
+        "computer",
+        "vision",
+    ],
+
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/BloodAxe/CloudCVBackend.git"
+    }
+}
