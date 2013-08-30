@@ -6,7 +6,7 @@
 
       'libraries': [
           '<!@(pkg-config --libs opencv)'
-        ]
+        ],
       
       'conditions': [
           ['OS=="linux"', {
