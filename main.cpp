@@ -3,7 +3,9 @@
 #include <v8.h>
 #include <opencv2/opencv.hpp>
 #include <string>
+
 #include "src/cloudcv.hpp"
+#include "src/node_helpers.hpp"
 
 using namespace v8;
 using namespace node;
@@ -88,7 +90,10 @@ void analyzeImageAsyncAfter(uv_work_t* req)
         obj->Set(String::NewSymbol("brightness"), Int32::New(task->result.brightness));
 
         obj->Set(String::NewSymbol("colorDeviation"), Int32::New(task->result.colorDeviation));
-        obj->Set(String::NewSymbol("histogram"), String::New(base64encode(task->result.histogram));
+
+        std::string histEncoded = cloudcv::base64encode(task->result.histogram);
+
+        obj->Set(String::NewSymbol("histogram"), String::New(histEncoded.c_str()));
 
         obj->Set(String::NewSymbol("processingTimeMs"), Int32::New(task->result.processingTimeMs));
 
