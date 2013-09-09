@@ -1,4 +1,5 @@
 #include "node_helpers.hpp"
+#include <iterator>
 
 namespace cloudcv
 {
