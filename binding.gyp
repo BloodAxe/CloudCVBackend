@@ -5,6 +5,7 @@
             "sources": [ "main.cpp", "src/analyze.cpp", "src/node_helpers.hpp", "src/node_helpers.cpp" ],
 
                                     'libraries': [
+                                        "/usr/local/share/OpenCV/3rdparty/lib/libIlmImf.a",
                                         "/usr/local/lib/libopencv_contrib.a",
                                         "/usr/local/lib/libopencv_stitching.a",
                                         "/usr/local/lib/libopencv_nonfree.a",

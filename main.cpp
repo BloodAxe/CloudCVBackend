@@ -68,7 +68,7 @@ void analyzeImageAsyncWork(uv_work_t* req)
     ImageAnalyzeTask* task = static_cast<ImageAnalyzeTask*>(req->data);
 
     std::vector<char> buffer(task->bufferData, task->bufferData + task->bufferLength);
-    cv::Mat input = cv::imdecode(buffer, CV_LOAD_IMAGE_COLOR);
+    cv::Mat input = cv::imdecode(buffer, 1);
 
     analyzeImage(input, task->result);
 }
