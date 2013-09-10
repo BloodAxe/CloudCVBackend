@@ -1,21 +1,9 @@
 #include "cloudcv.hpp"
+#include "node_helpers.hpp"
 
 namespace cloudcv
 {
-    struct ScopedTimer
-    {
-        inline ScopedTimer()
-        {
-            m_startTime = cv::getTickCount();
-        }
 
-        inline float executionTimeMs() const
-        {
-            return (cv::getTickCount() - m_startTime) * 1000. / cv::getTickFrequency();
-        }
-
-        int64_t m_startTime;
-    };
 
   size_t gcd(size_t u, size_t v)
   {
@@ -74,11 +62,11 @@ namespace cloudcv
           calcHist( &bgr_planes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate );
 
           // Draw the histograms for B, G and R
-          int hist_w = 512; int hist_h = 400;
+          int hist_w = 512; int hist_h = 200;
           int bin_w = cvRound( (double) hist_w/histSize );
 
-          histImage.create( hist_h, hist_w, CV_8UC3);
-          histImage = Scalar( 0,0,0) ;
+          histImage.create( hist_h, hist_w, CV_8UC4);
+          histImage = Scalar::all(0);
 
           /// Normalize the result to [ 0, histImage.rows ]
           normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
@@ -90,13 +78,13 @@ namespace cloudcv
           {
               line( histImage, Point( bin_w*(i-1), hist_h - cvRound(b_hist.at<float>(i-1)) ) ,
                                Point( bin_w*(i), hist_h - cvRound(b_hist.at<float>(i)) ),
-                               Scalar( 255, 0, 0), 2, 8, 0  );
+                               Scalar( 255, 0, 0, 255), 2, CV_AA, 0  );
               line( histImage, Point( bin_w*(i-1), hist_h - cvRound(g_hist.at<float>(i-1)) ) ,
                                Point( bin_w*(i), hist_h - cvRound(g_hist.at<float>(i)) ),
-                               Scalar( 0, 255, 0), 2, 8, 0  );
+                               Scalar( 0, 255, 0, 255), 2, CV_AA, 0  );
               line( histImage, Point( bin_w*(i-1), hist_h - cvRound(r_hist.at<float>(i-1)) ) ,
                                Point( bin_w*(i), hist_h - cvRound(r_hist.at<float>(i)) ),
-                               Scalar( 0, 0, 255), 2, 8, 0  );
+                               Scalar( 0, 0, 255, 255), 2, CV_AA, 0  );
           }
     }
 
@@ -115,10 +103,14 @@ namespace cloudcv
 
         cv::Mat gray;
         cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
-
         result.brightness = cv::mean(gray).val[0];
         result.contrast = 0;
 
+        cv::equalizeHist(gray, gray);
+        cv::Canny(gray, result.canny, 50, 200);
+
+        cv::Laplacian(gray, result.laplaccian, CV_8U);
+        
         result.colorDeviation = 0;
         result.colorEntropy   = 0;
 

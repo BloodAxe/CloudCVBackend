@@ -12,7 +12,10 @@ namespace cloudcv
         size_t aspectNum;
         size_t aspectDenom;
 
-        cv::Mat  histogram;
+        cv::Mat histogram;
+        cv::Mat laplaccian;
+        cv::Mat canny;
+        cv::Mat lines;
 
         float contrast;
         float brightness;
