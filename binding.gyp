@@ -2,10 +2,19 @@
     "targets": [
         {
             "target_name": "cloudcv",
-            "sources": [ "main.cpp", "src/analyze.cpp", "src/node_helpers.hpp", "src/node_helpers.cpp" ],
+            "sources": [ 
+                "main.cpp", 
+                
+                "src/node/node_helpers.hpp", 
+                "src/node/node_helpers.cpp",
+
+                "src/modules/analyze/analyze.cpp", 
+                "src/modules/analyze/analyze.hpp", 
+                "src/modules/analyze/binding.hpp", 
+                "src/modules/analyze/binding.cpp", 
+            ],
 
                                     'libraries': [
-                                        "/usr/local/share/OpenCV/3rdparty/lib/libIlmImf.a",
                                         "/usr/local/lib/libopencv_contrib.a",
                                         "/usr/local/lib/libopencv_stitching.a",
                                         "/usr/local/lib/libopencv_nonfree.a",

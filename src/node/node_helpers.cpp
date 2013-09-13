@@ -1,8 +1,10 @@
 #include "node_helpers.hpp"
+
 #include <iterator>
 
-namespace cloudcv
-{
+using namespace v8;
+using namespace node;
+
     static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -11,6 +13,7 @@ namespace cloudcv
                                 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
                                 'w', 'x', 'y', 'z', '0', '1', '2', '3',
                                 '4', '5', '6', '7', '8', '9', '+', '/'};
+
     static char *decoding_table = NULL;
     static int mod_table[] = {0, 2, 1};
 
@@ -38,6 +41,45 @@ namespace cloudcv
         for (int i = 0; i < mod_table[input_length % 3]; i++)
             encoded_data[output_length - 1 - i] = '=';
     }
+
+    //////////////////////////////////////////////////////////////
+
+    ObjectBuilder::ObjectBuilder(NodeObject& obj)
+        : m_object(obj)
+    {
+    }
+
+    ObjectBuilder& ObjectBuilder::Set(const char * name, int value)
+    {
+        m_object->Set(String::NewSymbol(name), Int32::New(value)); 
+        return *this;
+    }
+
+    ObjectBuilder& ObjectBuilder::Set(const char * name, size_t value)
+    {
+        m_object->Set(String::NewSymbol(name), Uint32::New(value)); 
+        return *this;
+    }
+
+    ObjectBuilder& ObjectBuilder::Set(const char * name, float value)
+    { 
+        m_object->Set(String::NewSymbol(name), Number::New(value)); 
+        return *this;
+    }
+
+    ObjectBuilder& ObjectBuilder::Set(const char * name, const char * value)
+    { 
+        m_object->Set(String::NewSymbol(name), String::New(value)); 
+        return *this;
+    }
+
+    ObjectBuilder& ObjectBuilder::Set(const char * name, const std::string& value)
+    {
+        m_object->Set(String::NewSymbol(name), String::New(value.c_str(), value.size()));
+        return *this;
+    }
+
+    //////////////////////////////////////////////////////////////
 
 /*
 unsigned char *base64_decode(const char *data,
@@ -76,7 +118,7 @@ unsigned char *base64_decode(const char *data,
 }
 **/
 
-    std::string base64encode(cv::Mat& img)
+    std::string toDataUri(cv::Mat& img, const char * imageMimeType)
     {
         std::vector<unsigned char> buf, encoded;
         cv::imencode(".png", img, buf);
@@ -84,9 +126,7 @@ unsigned char *base64_decode(const char *data,
         base64_encode(buf, encoded);
 
         std::ostringstream os;
-        os << "data:image/png;base64,";
+        os << "data:" << imageMimeType << ";base64,";
         std::copy(encoded.begin(), encoded.end(), std::ostream_iterator<unsigned char>(os));
         return os.str();
     }
-
-}

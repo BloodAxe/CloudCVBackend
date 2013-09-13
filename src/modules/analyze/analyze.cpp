@@ -1,10 +1,8 @@
-#include "cloudcv.hpp"
-#include "node_helpers.hpp"
+#include "analyze.hpp"
+#include "../../node/node_helpers.hpp"
 
 namespace cloudcv
 {
-
-
   size_t gcd(size_t u, size_t v)
   {
       // simple cases (termination)
