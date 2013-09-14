@@ -36,6 +36,8 @@
         ObjectBuilder& Set(const char * name, const char * value);
         ObjectBuilder& Set(const char * name, const std::string& value);
 
+        ObjectBuilder& Set(const char * name, const cv::Size& size);
+        
     private:
         NodeObject& m_object;
     };
