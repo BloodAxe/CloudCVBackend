@@ -11,64 +11,74 @@ struct ImageAnalyzeTask
 {       
     ImageAnalyzeTask(Local<Value> imageBuffer, Local<Value> callback)
     {
-        m_imageData = Persistent<Object>::New(imageBuffer->ToObject());
+        HandleScope scope;
+        
+        Local<Object> imageBufferObject = Local<Object>::New(imageBuffer->ToObject());
         m_callback  = Persistent<Function>::New(Handle<Function>::Cast(callback));
 
-        bufferData   = Buffer::Data(m_imageData);;
-        bufferLength = Buffer::Length(m_imageData);
+        char * bufferData   = Buffer::Data(imageBufferObject);
+        size_t bufferLength = Buffer::Length(imageBufferObject);
+
+        m_imageData = std::vector<char>(bufferData, bufferData + bufferLength);
+
+        // This creates the work request struct.
+        m_request       = new uv_work_t();
+        m_request->data = this;  
     }
 
-    ~ImageAnalyzeTask()
+    virtual ~ImageAnalyzeTask()
     {
         m_callback.Dispose();
-        m_imageData.Dispose();
+        delete m_request;
     }
 
-    char*         bufferData;
-    size_t        bufferLength;
-
-    cloudcv::AnalyzeResult result;
-    Persistent<Function> m_callback;
-
-private:
-    Persistent<Object>   m_imageData;
-};
-
-
-// This function is executed in another thread at some point after it has been
-// scheduled. IT MUST NOT USE ANY V8 FUNCTIONALITY. Otherwise your extension
-// will crash randomly and you'll have a lot of fun debugging.
-// If you want to use parameters passed into the original call, you have to
-// convert them to PODs or some other fancy method.
-void analyzeImageAsyncWork(uv_work_t* req)
-{
-    ImageAnalyzeTask* task = static_cast<ImageAnalyzeTask*>(req->data);
-
-    std::vector<char> buffer(task->bufferData, task->bufferData + task->bufferLength);
-    cv::Mat input = cv::imdecode(buffer, 1);
-
-    analyzeImage(input, task->result);
-}
-
-// This function is executed in the main V8/JavaScript thread. That means it's
-// safe to use V8 functions again. Don't forget the HandleScope!
-void analyzeImageAsyncAfter(uv_work_t* req)
-{
-    HandleScope scope;
-    ImageAnalyzeTask* task = static_cast<ImageAnalyzeTask*>(req->data);
-
+    void StartTask()
     {
+        // Schedule our work request with libuv. Here you can specify the functions
+        // that should be executed in the threadpool and back in the main thread
+        // after the threadpool function completed.
+        int status = uv_queue_work( uv_default_loop(), 
+                                    m_request, 
+                                    &ImageAnalyzeTask::analyzeImageAsyncWork,
+                                    (uv_after_work_cb)ImageAnalyzeTask::analyzeImageAsyncAfter);
+        assert(status == 0);
+    }
+
+protected:
+
+    // This function is executed in another thread at some point after it has been
+    // scheduled. IT MUST NOT USE ANY V8 FUNCTIONALITY. Otherwise your extension
+    // will crash randomly and you'll have a lot of fun debugging.
+    // If you want to use parameters passed into the original call, you have to
+    // convert them to PODs or some other fancy method.
+    virtual void ExecuteNative()
+    {
+        cv::Mat input = cv::imdecode(m_imageData, 1);
+        analyzeImage(input, m_result);
+    }
+
+    // This function is executed in the main V8/JavaScript thread. That means it's
+    // safe to use V8 functions again. Don't forget the HandleScope!
+    virtual void InvokeResultCallback()
+    {
+        HandleScope scope;
+
         Local<Object> obj = Object::New();
 
         ObjectBuilder resultBuilder(obj);
 
-        resultBuilder.Set("aspectNum",         task->result.aspectNum);
-        resultBuilder.Set("aspectDenom",       task->result.aspectDenom);
-        resultBuilder.Set("contrast",          task->result.contrast);
-        resultBuilder.Set("brightness",        task->result.brightness);
-        resultBuilder.Set("colorDeviation",    task->result.colorDeviation);
-        resultBuilder.Set("histogram",         toDataUri(task->result.histogram));
-        resultBuilder.Set("processingTimeMs",  task->result.processingTimeMs);
+        resultBuilder.Set("size",              m_result.size);
+        resultBuilder.Set("aspectRatio",       m_result.aspectRatio);
+
+        resultBuilder.Set("contrast",          m_result.contrast);
+        resultBuilder.Set("brightness",        m_result.brightness);
+        resultBuilder.Set("colorDeviation",    m_result.colorDeviation);
+        resultBuilder.Set("processingTimeMs",  m_result.processingTimeMs);
+
+        resultBuilder.Set("histogram",         toDataUri(m_result.histogram));
+        resultBuilder.Set("canny",             toDataUri(m_result.canny));
+        resultBuilder.Set("laplaccian",        toDataUri(m_result.laplaccian));
+        resultBuilder.Set("lines",             toDataUri(m_result.lines));
 
         const unsigned argc = 1;
         Local<Value> argv[argc] = { obj };
@@ -78,7 +88,7 @@ void analyzeImageAsyncAfter(uv_work_t* req)
         // the exception from JavaScript land using the
         // process.on('uncaughtException') event.
         TryCatch try_catch;
-        task->m_callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        m_callback->Call(Context::GetCurrent()->Global(), argc, argv);
         
         if (try_catch.HasCaught())
         {
@@ -86,14 +96,41 @@ void analyzeImageAsyncAfter(uv_work_t* req)
         }
     }
 
-    // We also created the task and the work_req struct with new, so we have to
-    // manually delete both.
-    delete task;
-    delete req;
-}
+private:
+
+    void FinishTask()
+    {
+        InvokeResultCallback();
+    }
+
+    static void analyzeImageAsyncWork(uv_work_t* req)
+    {
+        ImageAnalyzeTask * task = static_cast<ImageAnalyzeTask*>(req->data);
+        task->ExecuteNative();
+    }
+
+    static void analyzeImageAsyncAfter(uv_work_t* req)
+    {
+        ImageAnalyzeTask* task = static_cast<ImageAnalyzeTask*>(req->data);
+        task->FinishTask();
+        delete task;
+    }
+
+private:
+    Persistent<Function>    m_callback;
+    uv_work_t             * m_request;
+
+    cloudcv::AnalyzeResult  m_result;
+    std::vector<char>       m_imageData;
+};
+
+
+
 
 Handle<Value> analyzeImage(const Arguments& args)
 {
+    HandleScope scope;
+
     if (args.Length() != 2)
     {
         return ThrowException(Exception::TypeError(String::New("Invalid number of arguments")));        
@@ -112,20 +149,9 @@ Handle<Value> analyzeImage(const Arguments& args)
     // The task holds our custom status information for this asynchronous call,
     // like the callback function we want to call when returning to the main
     // thread and the status information.
+    
     ImageAnalyzeTask* task = new ImageAnalyzeTask(args[0], args[1]);
-
-    // This creates the work request struct.
-    uv_work_t *req = new uv_work_t();
-    req->data = task;  
-
-    // Schedule our work request with libuv. Here you can specify the functions
-    // that should be executed in the threadpool and back in the main thread
-    // after the threadpool function completed.
-    int status = uv_queue_work( uv_default_loop(), 
-                                req, 
-                                analyzeImageAsyncWork,
-                                (uv_after_work_cb)analyzeImageAsyncAfter);
-    assert(status == 0);
+    task->StartTask();
 
     return Undefined();
 }

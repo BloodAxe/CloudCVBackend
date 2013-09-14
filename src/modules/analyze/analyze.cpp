@@ -34,85 +34,101 @@ namespace cloudcv
       return gcd((v - u) >> 1, u);
   }
 
-    void drawHistogram(cv::Mat src, cv::Mat& histImage)
-    {
-        using namespace cv;
-        using namespace std;
+  void drawHistogram(cv::Mat src, cv::Mat& histImage)
+  {
+      using namespace cv;
+      using namespace std;
 
-        /// Separate the image in 3 places ( B, G and R )
-          vector<Mat> bgr_planes;
-          split( src, bgr_planes );
+      /// Separate the image in 3 places ( B, G and R )
+        vector<Mat> bgr_planes;
+        split( src, bgr_planes );
 
-          /// Establish the number of bins
-          int histSize = 256;
+        /// Establish the number of bins
+        int histSize = 256;
 
-          /// Set the ranges ( for B,G,R) )
-          float range[] = { 0, 256 } ;
-          const float* histRange = { range };
+        /// Set the ranges ( for B,G,R) )
+        float range[] = { 0, 256 } ;
+        const float* histRange = { range };
 
-          bool uniform = true; bool accumulate = false;
+        bool uniform = true; bool accumulate = false;
 
-          Mat b_hist, g_hist, r_hist;
+        Mat b_hist, g_hist, r_hist;
 
-          /// Compute the histograms:
-          calcHist( &bgr_planes[0], 1, 0, Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate );
-          calcHist( &bgr_planes[1], 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate );
-          calcHist( &bgr_planes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate );
+        /// Compute the histograms:
+        calcHist( &bgr_planes[0], 1, 0, Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate );
+        calcHist( &bgr_planes[1], 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate );
+        calcHist( &bgr_planes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate );
 
-          // Draw the histograms for B, G and R
-          int hist_w = 512; int hist_h = 200;
-          int bin_w = cvRound( (double) hist_w/histSize );
+        // Draw the histograms for B, G and R
+        int hist_w = 512; int hist_h = 200;
+        int bin_w = cvRound( (double) hist_w/histSize );
 
-          histImage.create( hist_h, hist_w, CV_8UC4);
-          histImage = Scalar::all(0);
+        histImage.create( hist_h, hist_w, CV_8UC4);
+        histImage = Scalar::all(0);
 
-          /// Normalize the result to [ 0, histImage.rows ]
-          normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-          normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-          normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+        /// Normalize the result to [ 0, histImage.rows ]
+        normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+        normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+        normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
 
-          /// Draw for each channel
-          for( int i = 1; i < histSize; i++ )
-          {
-              line( histImage, Point( bin_w*(i-1), hist_h - cvRound(b_hist.at<float>(i-1)) ) ,
-                               Point( bin_w*(i), hist_h - cvRound(b_hist.at<float>(i)) ),
-                               Scalar( 255, 0, 0, 255), 2, CV_AA, 0  );
-              line( histImage, Point( bin_w*(i-1), hist_h - cvRound(g_hist.at<float>(i-1)) ) ,
-                               Point( bin_w*(i), hist_h - cvRound(g_hist.at<float>(i)) ),
-                               Scalar( 0, 255, 0, 255), 2, CV_AA, 0  );
-              line( histImage, Point( bin_w*(i-1), hist_h - cvRound(r_hist.at<float>(i-1)) ) ,
-                               Point( bin_w*(i), hist_h - cvRound(r_hist.at<float>(i)) ),
-                               Scalar( 0, 0, 255, 255), 2, CV_AA, 0  );
-          }
-    }
+        /// Draw for each channel
+        for( int i = 1; i < histSize; i++ )
+        {
+            line( histImage, Point( bin_w*(i-1), hist_h - cvRound(b_hist.at<float>(i-1)) ) ,
+                             Point( bin_w*(i), hist_h - cvRound(b_hist.at<float>(i)) ),
+                             Scalar( 255, 0, 0, 255), 2, CV_AA, 0  );
+            line( histImage, Point( bin_w*(i-1), hist_h - cvRound(g_hist.at<float>(i-1)) ) ,
+                             Point( bin_w*(i), hist_h - cvRound(g_hist.at<float>(i)) ),
+                             Scalar( 0, 255, 0, 255), 2, CV_AA, 0  );
+            line( histImage, Point( bin_w*(i-1), hist_h - cvRound(r_hist.at<float>(i-1)) ) ,
+                             Point( bin_w*(i), hist_h - cvRound(r_hist.at<float>(i)) ),
+                             Scalar( 0, 0, 255, 255), 2, CV_AA, 0  );
+        }
+  }
 
-    void analyzeImage(cv::Mat src, AnalyzeResult& result)
-    {
-        ScopedTimer timer;
+  void analyzeImage(cv::Mat src, AnalyzeResult& result)
+  {
+      ScopedTimer timer;
 
-        result = AnalyzeResult();
-        drawHistogram(src, result.histogram);
+      result = AnalyzeResult();
 
-        size_t d = gcd(src.cols, src.rows);
+      drawHistogram(src, result.histogram);
 
-        result.size        = src.size();
-        result.aspectNum   = src.cols / d;
-        result.aspectDenom = src.rows / d;
+      result.size        = src.size();
 
-        cv::Mat gray;
-        cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
-        result.brightness = cv::mean(gray).val[0];
-        result.contrast = 0;
+      size_t d = gcd(src.cols, src.rows);
+      result.aspectRatio.width  = src.cols / d;
+      result.aspectRatio.height = src.rows / d;
 
-        cv::equalizeHist(gray, gray);
-        cv::Canny(gray, result.canny, 50, 200);
+      cv::Mat gray;
+      cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
 
-        cv::Laplacian(gray, result.laplaccian, CV_8U);
-        
-        result.colorDeviation = 0;
-        result.colorEntropy   = 0;
+      result.brightness = cv::mean(gray).val[0];
+      result.contrast   = 0;
 
-        result.processingTimeMs = timer.executionTimeMs();
-    }
-    
+      cv::equalizeHist(gray, gray);
+      cv::Canny(gray, result.canny, 50, 200);
+      cv::Laplacian(gray, result.laplaccian, CV_8U);
+
+      std::vector<cv::Vec4i> lines;
+      cv::HoughLinesP(result.canny, lines, 2, 2 * CV_PI / 180, 100, 100, 5);
+
+      cv::Mat linesImg(gray.size(), CV_8UC4);
+      linesImg = cv::Scalar::all(0);
+
+      for (size_t lineIdx= 0; lineIdx < lines.size(); lineIdx++)
+      {
+        cv::Vec4i v = lines[lineIdx];
+        cv::line(linesImg, cv::Point(v[0], v[1]), cv::Point(v[2], v[3]), cv::Scalar(0,255,0,255));
+      }
+
+      result.lines = linesImg;
+      
+      
+
+      result.colorDeviation = 0;
+      result.colorEntropy   = 0;
+
+      result.processingTimeMs = timer.executionTimeMs();
+  } 
 }

@@ -4,13 +4,16 @@
 
 namespace cloudcv
 {
-
+    /**
+     * Result of image analyze
+     */
     struct AnalyzeResult
     {
+        // Size of input image
         cv::Size size;
 
-        size_t aspectNum;
-        size_t aspectDenom;
+        // Aspect ratio of the input image
+        cv::Size aspectRatio;
 
         cv::Mat histogram;
         cv::Mat laplaccian;
