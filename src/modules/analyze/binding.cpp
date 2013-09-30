@@ -67,18 +67,51 @@ protected:
 
         ObjectBuilder resultBuilder(obj);
 
-        resultBuilder.Set("size",              m_result.size);
-        resultBuilder.Set("aspectRatio",       m_result.aspectRatio);
+        bool isColor = m_result.source.channels() > 1;
 
-        resultBuilder.Set("contrast",          m_result.contrast);
-        resultBuilder.Set("brightness",        m_result.brightness);
-        resultBuilder.Set("colorDeviation",    m_result.colorDeviation);
-        resultBuilder.Set("processingTimeMs",  m_result.processingTimeMs);
+        // Common information        
+        resultBuilder.Set("source.aspectRatio",  m_result.aspectRatio);
+        resultBuilder.Set("source.frameSize",    m_result.frameSize);
+        resultBuilder.Set("source.channels",     m_result.source.channels());
+        resultBuilder.Set("source.bitsPerPixel", m_result.source.depth());
+        resultBuilder.Set("source.hasAlpha",     m_result.source.channels() == 4);        
+        resultBuilder.Set("source.humanSize",    humanSize(m_result.source.depth() * m_result.frameSize.width * m_result.frameSize.height);
+        resultBuilder.Set("source.isColor",      isColor);
 
-        resultBuilder.Set("histogram",         toDataUri(m_result.histogram));
-        resultBuilder.Set("canny",             toDataUri(m_result.canny));
-        resultBuilder.Set("laplaccian",        toDataUri(m_result.laplaccian));
-        resultBuilder.Set("lines",             toDataUri(m_result.lines));
+        // Histogram
+        if (isColor)
+        {
+            resultBuilder.Set("histogram.colorImage", toDataUri(m_result.colorHistogram));
+        }
+
+        resultBuilder.Set("histogram.grayImage",  toDataUri(m_result.grayHistogram));
+        resultBuilder.Set("histogram.brightness", m_result.brightness);
+        
+        // Color analyze
+        if (isColor)
+        {
+            resultBuilder.Set("colorAnalyze.uniqieColors",        m_result.uniqieColors);
+            resultBuilder.Set("colorAnalyze.reducedColors",       m_result.reducedColors);
+            resultBuilder.Set("colorAnalyze.dominantColors",      m_result.dominantColors);
+            resultBuilder.Set("colorAnalyze.dominantColorsImage", m_result.dominantColorsImage);
+            resultBuilder.Set("colorAnalyze.redDeviation",        m_result.redDeviation);
+            resultBuilder.Set("colorAnalyze.greenDeviation",      m_result.greenDeviation);
+            resultBuilder.Set("colorAnalyze.blueDeviation",       m_result.blueDeviation);
+        }
+
+        // Edges
+        resultBuilder.Set("canny.image",                          m_result.cannyImage);
+        resultBuilder.Set("canny.lowerThreshold",                 m_result.lowerThreshold);
+        resultBuilder.Set("canny.upperThreshold",                 m_result.upperThreshold);
+        resultBuilder.Set("canny.apertureSize",                   m_result.apertureSize);
+        
+        // Morphologic analyze
+        resultBuilder.Set("morphology.houghImage",                m_result.houghImage);
+        resultBuilder.Set("morphology.lines.count",               m_result.houghLines.size());
+        resultBuilder.Set("morphology.circles.count",             m_result.houghCircles.size());
+
+        // The rest
+        resultBuilder.Set("processingTimeMs",                     m_result.processingTimeMs);
 
         const unsigned argc = 1;
         Local<Value> argv[argc] = { obj };

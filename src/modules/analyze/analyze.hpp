@@ -4,27 +4,53 @@
 
 namespace cloudcv
 {
+    struct Distribution
+    {
+        float min;
+        float max;
+        float average;
+        float standardDeviation;
+        float entropy;
+    };
+
     /**
      * Result of image analyze
      */
     struct AnalyzeResult
     {
-        // Size of input image
-        cv::Size size;
+        cv::Mat source;
 
-        // Aspect ratio of the input image
-        cv::Size aspectRatio;
+        cv::Size frameSize;   // Size of input image       
+        cv::Size aspectRatio; // Aspect ratio of the input image
 
-        cv::Mat histogram;
-        cv::Mat laplaccian;
-        cv::Mat canny;
-        cv::Mat lines;
+        // Histogram
+        cv::Mat colorHistogram;
+        cv::Mat grayImage;
 
-        float contrast;
-        float brightness;
+        Distribution intensity;
+        
+        float   rmsContrast;
 
-        float colorDeviation;
-        float colorEntropy;
+        // Color analyze
+        size_t                 uniqieColors;
+        size_t                 reducedColors;
+        std::vector<cv::Vec3b> dominantColors;
+        cv::Mat                dominantColorsImage;
+
+        Distribution   redDeviation;
+        Distribution   greenDeviation;
+        Distribution   blueDeviation;
+
+        // Edges
+        cv::Mat cannyImage;
+        int     cannyLowerThreshold;
+        int     cannyUpperThreshold;
+        int     apertureSize;
+
+        // Morphologic analyze
+        cv::Mat                houghImage;
+        std::vector<cv::Vec4i> houghLines;
+        std::vector<cv::Vec4i> houghCircles;
 
         float processingTimeMs;
     };

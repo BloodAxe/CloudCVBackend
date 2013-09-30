@@ -86,6 +86,50 @@ namespace cloudcv
         }
   }
 
+  cv::Size aspectRatio(const cv::Size& frameSize)
+  {
+      size_t d = gcd(frameSize.width, frameSize.height);
+      return cv::Size(frameSize.width / d, frameSize.height/ d);
+  }
+
+  /**
+   * Root mean square (RMS) contrast
+   */
+  float rmsContrast(cv::Mat_<unsigned char> grayscale)
+  {
+    cv::Mat I;
+    cv::convertTo(I, CV_32F, 1.0f / 255.0f);
+    
+    cv::Mat normalize = (I - cv::mean(I).val[0]);
+    
+    float sum = cv::sum(normalize.mul(normalize)).val[0];
+    float totalPixels = grayscale.rows * grayscale.cols;
+
+    return sqrt(sum / totalPixels);
+  }
+
+  void extractDominantColors(cv::Mat_<cv::Vec3b> colorImg, std::vector<cv::Vec3b>& colors)
+  {
+
+  }
+
+  Distribution distribution(cv::InputArray data)
+  {
+    cv::Scalar avg, dev;
+    double min,max;
+
+    cv::meanStdDev(data, avg, dev);
+    cv::minMaxLoc(data, &min, &max);
+
+    Distribution d;
+    d.average           = avg.val[0];
+    d.standardDeviation = dev.val[0];
+    d.min     = min;
+    d.max     = max;
+    d.entropy = 0;
+    return d;
+  }
+
   void analyzeImage(cv::Mat src, AnalyzeResult& result)
   {
       ScopedTimer timer;
@@ -94,41 +138,85 @@ namespace cloudcv
 
       drawHistogram(src, result.histogram);
 
-      result.size        = src.size();
-
-      size_t d = gcd(src.cols, src.rows);
-      result.aspectRatio.width  = src.cols / d;
-      result.aspectRatio.height = src.rows / d;
+      result.source      = src;
+      result.frameSize   = src.size();
+      result.aspectRatio = aspectRatio(src.size());
 
       cv::Mat gray;
-      cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
 
-      result.brightness = cv::mean(gray).val[0];
-      result.contrast   = 0;
-
-      cv::equalizeHist(gray, gray);
-      cv::Canny(gray, result.canny, 50, 200);
-      cv::Laplacian(gray, result.laplaccian, CV_8U);
-
-      std::vector<cv::Vec4i> lines;
-      cv::HoughLinesP(result.canny, lines, 2, 2 * CV_PI / 180, 100, 100, 5);
-
-      cv::Mat linesImg(gray.size(), CV_8UC4);
-      linesImg = cv::Scalar::all(0);
-
-      for (size_t lineIdx= 0; lineIdx < lines.size(); lineIdx++)
+      if (src.channels() == 1)
       {
-        cv::Vec4i v = lines[lineIdx];
-        cv::line(linesImg, cv::Point(v[0], v[1]), cv::Point(v[2], v[3]), cv::Scalar(0,255,0,255));
+        gray = src;
+      }
+      else
+      {
+        cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
+
+        // Process color image here:
+
+        std::map<size_t, size_t> fullColorsTable;
+        std::map<size_t, size_t> quantizedColorsTable;
+
+        cv::Mat_<cv::Vec3b> colorImg = src;
+        std::vector<unsigned char> r,g,b;
+
+        for (int row = 0; row < colorImg.rows; row++)
+        {
+          for (int col = 0; col < colorImg.cols; col++)
+          {
+              cv::Vec3b clr = colorImg(row, col);
+              size_t hash1 = clr[0] + clr[1] << 8 + clr[2] << 16;
+              size_t hash2 = ((clr[0]/2)*2) + ((clr[1]/2)*2) << 8 + ((clr[2]/2)*2) << 16;
+
+              fullColorsTable[hash1]++;
+              quantizedColorsTable[hash2]++;
+
+              r.push_back(clr[0]);
+              g.push_back(clr[0]);
+              b.push_back(clr[0]);
+          }
+        }
+
+        result.uniqieColors  = fullColorsTable.size();
+        result.reducedColors = quantizedColorsTable.size();
+
+        redDeviation   = distribution(r);
+        greenDeviation = distribution(g);
+        blueDeviation  = distribution(b);
+
+        extractDominantColors(src, result.dominantColors, result.dominantColorsImage);
       }
 
-      result.lines = linesImg;
-      
+      // Process the rest with grayscale image
+      result.intensity  = distribution(gray);
+      result.contrast   = rmsContrast(gray);
+
+      // Canny
+      {
+        result.cannyLowerThreshold = 0.5 * result.brightness;
+        result.cannyUpperThreshold = 1.5 * result.brightness;
+
+        cv::Canny(gray, result.cannyImage, result.cannyLowerThreshold, result.cannyUpperThreshold);        
+      }
       
 
-      result.colorDeviation = 0;
-      result.colorEntropy   = 0;
+      // Hough
+      {
+        std::vector<cv::Vec4i> lines;
+        cv::HoughLinesP(result.cannyImage, result.houghLines, 2, 2 * CV_PI / 180, 100, 100, 5);
 
+        cv::Mat linesImg(gray.size(), CV_8UC4);
+        linesImg = cv::Scalar::all(0);
+
+        for (size_t lineIdx= 0; lineIdx < lines.size(); lineIdx++)
+        {
+          cv::Vec4i v = lines[lineIdx];
+          cv::line(linesImg, cv::Point(v[0], v[1]), cv::Point(v[2], v[3]), cv::Scalar(0,255,0,255));
+        }
+
+        result.houghImage = 0.5 * src + linesImg;        
+      }
+      
       result.processingTimeMs = timer.executionTimeMs();
   } 
 }
