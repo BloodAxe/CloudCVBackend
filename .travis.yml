@@ -1,2 +1,2 @@
 language: node_js
-before_install: sudo apt-get install opencv
+before_install: sudo apt-get update && sudo apt-get install opencv
