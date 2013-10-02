@@ -13,6 +13,9 @@
                 "src/modules/analyze/binding.hpp", 
                 "src/modules/analyze/binding.cpp", 
             ],
+            'include_dirs': [
+              'src/',
+            ],
 
                                     'libraries': [
                                         "/usr/local/lib/libopencv_contrib.a",
