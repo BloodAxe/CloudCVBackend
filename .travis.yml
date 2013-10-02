@@ -1,9 +1,11 @@
 language: node_js
 before_install: 
- - sudo apt-get update
- - sudo apt-get install build-essential cmake pkg-config
- - git clone --branch=master https://github.com/Itseez/opencv.git opencv
+ - sudo apt-get install build-essential
+ - curl -sL https://github.com/Itseez/opencv/archive/master.zip > opencv.zip
+ - unzip opencv.zip
+ - rm opencv.zip
  - mkdir opencv-build
  - cd opencv-build/
- - cmake -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DWITH_OPENEXR=OFF ../opencv/
+ - cmake -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DWITH_OPENEXR=OFF ../opencv-master/
  - sudo make install
+ - cd ..
