@@ -1,7 +1,7 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include <cstdint>
+#include <stdint.h>
 
 size_t gcd(size_t u, size_t v);
 
