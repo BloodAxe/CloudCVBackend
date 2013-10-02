@@ -1,0 +1,229 @@
+#include "dominantColors.hpp"
+
+template<int N>
+inline size_t quantize(size_t val)
+{
+	val = val >> N;
+	val = val << N;
+	return val;
+}
+
+static inline int SQR(int val)
+{
+	return val * val;
+}
+
+int Color::distanceTo(const cv::Vec3b& other) const
+{
+	int r = hash         & 0xFF;
+	int g = (hash >> 8)  & 0xFF; 
+	int b = (hash >> 16) & 0xFF; 
+
+	int or = other.val[2];
+	int og = other.val[1];
+	int ob = other.val[0];
+
+	return SQR(r - or) + SQR(g - og) + SQR(b - ob);
+}
+
+int Color::distanceTo(const Color& other) const
+{
+	int r = hash         & 0xFF;
+	int g = (hash >> 8)  & 0xFF; 
+	int b = (hash >> 16) & 0xFF; 
+
+	int or = other.hash         & 0xFF;
+	int og = (other.hash >> 8)  & 0xFF; 
+	int ob = (other.hash >> 16) & 0xFF; 
+
+	return SQR(r - or) + SQR(g - og) + SQR(b - ob);
+}
+
+void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)
+{
+	rVec.clear();
+	gVec.clear();
+	bVec.clear();
+
+	fullColorsTable.clear();
+	quantizedColorsTable.clear();
+
+	for (int row = 0; row < bgrImage.rows; row++)
+	{
+		for (int col = 0; col < bgrImage.cols; col++)
+		{
+			cv::Vec3b clr = bgrImage(row, col);
+
+			size_t b = clr[0];
+			size_t g = clr[1];
+			size_t r = clr[2];
+
+			size_t hash1 = r + (b << 8) + (g << 16);
+			size_t hash2 = quantize<2>(r) + (quantize<2>(g) << 8) + (quantize<2>(b) << 16);
+
+			fullColorsTable[hash1]++;
+			quantizedColorsTable[hash2]++;
+
+			rVec.push_back(r);
+			gVec.push_back(g);
+			bVec.push_back(b);
+		}
+	}
+
+	std::set<Color> colors;
+
+	for (auto it = quantizedColorsTable.begin(); it != quantizedColorsTable.end(); ++it)
+	{
+		colors.insert(Color(it->first, it->second));
+	}
+
+	mainColors.clear();
+
+	std::set<Color> mfc;
+	std::set<Color> colorsSet = colors;
+
+	int minPixelsInSet = static_cast<int>(bgrImage.rows * bgrImage.cols * 0.02); // Minimum amount for dominant color is 5% of the area of the image
+
+	while (findLargestColorSet(3000, minPixelsInSet, colorsSet, mfc))
+	{
+		std::set<Color> restColors;
+		std::set_difference(colorsSet.begin(), colorsSet.end(), mfc.begin(), mfc.end(), std::inserter(restColors, restColors.end()));
+		colorsSet = restColors;
+
+		auto c = computeFinalColor(mfc);
+		mainColors.push_back(c);
+
+	}
+
+	cv::Mat visImg = getImage();
+	int d = 0;
+}
+
+cv::Mat DominantColorsExtractor::getImage() const
+{
+	int rowWidth  = 250;
+	int rowHeight = 100;
+
+	cv::Mat img(mainColors.size() * rowHeight, rowWidth, CV_8UC3);
+
+	for (size_t i = 0; i < mainColors.size(); i++)
+	{
+		auto c = mainColors[i];
+
+		cv::Scalar clr = c.color;
+
+		cv::rectangle(img, cv::Rect(0, i * rowHeight, rowWidth, rowHeight), clr, -1);
+		std::ostringstream os;
+		os << "Pixels:" << mainColors[i].totalPixels << " Error: " << c.error;
+
+		cv::putText(img, os.str(), cv::Point(10, i * rowHeight + 20), CV_FONT_HERSHEY_PLAIN, 1, CV_RGB(1,1,1), 1, CV_AA);
+	}
+
+	return img;
+}
+
+DominantColor DominantColorsExtractor::computeFinalColor(const std::set<Color>& colorsSet) const
+{
+	float final_r = 0, final_g = 0, final_b = 0;
+
+	int totalPixels = 0;
+
+	for (auto it = colorsSet.begin(); it != colorsSet.end(); it++)
+	{
+		totalPixels += it->count;
+	}
+
+	for (auto it = colorsSet.begin(); it != colorsSet.end(); it++)
+	{
+		Color c = *it;
+	
+		int r = c.hash         & 0xFF;
+		int g = (c.hash >> 8)  & 0xFF; 
+		int b = (c.hash >> 16) & 0xFF; 
+
+		float weight = (float)c.count / (float)totalPixels;
+
+		final_r += weight * r;
+		final_g += weight * g;
+		final_b += weight * b;
+	}
+
+	DominantColor dc;
+
+	dc.color = cv::Vec3b
+		(
+		cv::saturate_cast<uint8_t>(final_b), 
+		cv::saturate_cast<uint8_t>(final_g), 
+		cv::saturate_cast<uint8_t>(final_r)
+		);
+
+	dc.totalPixels = totalPixels;
+	dc.error = 0;
+
+	for (auto it = colorsSet.begin(); it != colorsSet.end(); it++)
+	{
+		float weight = (float)it->count / (float)totalPixels;
+		dc.error += weight * it->distanceTo(dc.color);
+	}
+
+	return dc;
+}
+
+bool DominantColorsExtractor::findLargestColorSet(int similarityTolerance, int minPixelsInSet, const std::set<Color>& input, std::set<Color>& colorsSet) const
+{
+	colorsSet.clear();
+
+	if (input.empty())
+		return false;
+
+	auto largestColorIt = input.begin();
+	size_t largestCount = largestColorIt->count;
+
+	for (auto it = input.begin(); it != input.end(); it++)
+	{
+		if (it->count > largestCount)
+		{
+			largestCount = it->count;
+			largestColorIt = it;
+		}
+	}
+
+	Color mfc = *largestColorIt;
+	int totalPixelsInSet = 0;
+
+	for (auto it = input.begin(); it != input.end(); it++)
+	{
+		Color other = *it;
+		int distance = mfc.distanceTo(other);
+
+		if (distance < similarityTolerance)
+		{
+			totalPixelsInSet += other.count;
+			colorsSet.insert(other);
+		}
+	}
+
+	return !colorsSet.empty() && totalPixelsInSet > minPixelsInSet;
+}
+
+
+ColorDeviation DominantColorsExtractor::getColorDeviation() const
+{
+	ColorDeviation cd;
+
+	cd.red   = distribution(rVec);
+	cd.green = distribution(gVec);
+	cd.blue  = distribution(bVec);
+
+	return cd;
+}
+
+size_t DominantColorsExtractor::getUniqueColors() const
+{
+	return fullColorsTable.size();
+}
+
+size_t DominantColorsExtractor::getRedicedColors() const
+{
+	return quantizedColorsTable.size();
+}
