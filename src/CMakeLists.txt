@@ -16,5 +16,5 @@ include_directories(${OpenCV_INCLUDE_DIR})
 # Add link directories:
 link_directories(${OpenCV_LIBRARY_DIRS})
 
-
-add_library(CloudCVBackend analyze.cpp cloudcv.hpp node_helpers.hpp node_helpers.cpp)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+add_subdirectory(modules)
