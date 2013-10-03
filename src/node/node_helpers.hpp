@@ -11,6 +11,10 @@
 std::string toDataUri(cv::Mat& img, const char * imageMimeType = kImageTypePng);
 
 
+/**
+ * Prints a human-friendly size like 2G, 153Mb 54K, 1M, etc..
+ */
+std::string humanSize(size_t sizeInBytes);
 
 class ObjectBuilder
 {
@@ -22,6 +26,7 @@ public:
     ObjectBuilder& Set(const char * name, int value);
     ObjectBuilder& Set(const char * name, size_t value);
     ObjectBuilder& Set(const char * name, float value);
+    ObjectBuilder& Set(const char * name, double value);
     ObjectBuilder& Set(const char * name, const char * value);
     ObjectBuilder& Set(const char * name, const std::string& value);
 

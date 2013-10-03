@@ -1,6 +1,7 @@
 #include "node_helpers.hpp"
 
 #include <iterator>
+#include <iostream>
 
 using namespace v8;
 using namespace node;
@@ -67,6 +68,12 @@ ObjectBuilder& ObjectBuilder::Set(const char * name, float value)
     return *this;
 }
 
+ObjectBuilder& ObjectBuilder::Set(const char * name, double value)
+{
+    m_object->Set(String::NewSymbol(name), Number::New(value));
+    return *this;
+}
+
 ObjectBuilder& ObjectBuilder::Set(const char * name, const char * value)
 { 
     m_object->Set(String::NewSymbol(name), String::New(value)); 
@@ -78,6 +85,9 @@ ObjectBuilder& ObjectBuilder::Set(const char * name, const std::string& value)
     m_object->Set(String::NewSymbol(name), String::New(value.c_str(), value.size()));
     return *this;
 }
+
+
+
 
 ObjectBuilder& ObjectBuilder::Set(const char * name, const cv::Size& size)
 {
@@ -92,7 +102,6 @@ ObjectBuilder& ObjectBuilder::Set(const char * name, const cv::Size& size)
     m_object->Set(String::NewSymbol(name), sizeObj);
     return *this;
 }
-
 
 //////////////////////////////////////////////////////////////
 
@@ -144,4 +153,13 @@ std::string toDataUri(cv::Mat& img, const char * imageMimeType)
     os << "data:" << imageMimeType << ";base64,";
     std::copy(encoded.begin(), encoded.end(), std::ostream_iterator<unsigned char>(os));
     return os.str();
+}
+
+std::string humanSize(size_t sizeInBytes)
+{
+    std::ostringstream str;
+
+    str << sizeInBytes;
+
+    return str.str();
 }
