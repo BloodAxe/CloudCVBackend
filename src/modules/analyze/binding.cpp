@@ -1,6 +1,7 @@
 #include "binding.hpp"
 #include "analyze.hpp"
 #include "../../node/node_helpers.hpp"
+#include "modules/common/Serialization.hpp"
 
 #include <node_buffer.h>
 
@@ -54,8 +55,22 @@ protected:
     virtual void ExecuteNative()
     {
         cv::Mat input = cv::imdecode(m_imageData, 1);
+
+        cloudcv::AnalyzeResult  m_result;
         analyzeImage(input, m_result);
+
+        std::ostringstream os;
+
+        // Prettyfy JSON output
+        serializeJson<true>(m_result, os);
+
+        // Write JSON compact
+        //serializeJson<false>(m_result, os);
+
+        m_jsonResponse = os.str();
     }
+
+
 
     // This function is executed in the main V8/JavaScript thread. That means it's
     // safe to use V8 functions again. Don't forget the HandleScope!
@@ -63,58 +78,9 @@ protected:
     {
         HandleScope scope;
 
-        Local<Object> obj = Object::New();
-
-        ObjectBuilder resultBuilder(obj);
-
-        bool isColor = m_result.source.channels() > 1;
-
-        // Common information        
-        resultBuilder.Set("source.aspectRatio",  m_result.aspectRatio);
-        resultBuilder.Set("source.frameSize",    m_result.frameSize);
-        resultBuilder.Set("source.channels",     m_result.source.channels());
-        resultBuilder.Set("source.bitsPerPixel", m_result.source.depth());
-        resultBuilder.Set("source.hasAlpha",     m_result.source.channels() == 4);        
-        resultBuilder.Set("source.humanSize",    humanSize(m_result.source.depth() * m_result.frameSize.width * m_result.frameSize.height);
-        resultBuilder.Set("source.isColor",      isColor);
-
-        // Histogram
-        if (isColor)
-        {
-            resultBuilder.Set("histogram.colorImage", toDataUri(m_result.colorHistogram));
-        }
-
-        resultBuilder.Set("histogram.grayImage",  toDataUri(m_result.grayHistogram));
-        resultBuilder.Set("histogram.brightness", m_result.brightness);
-        
-        // Color analyze
-        if (isColor)
-        {
-            resultBuilder.Set("colorAnalyze.uniqieColors",        m_result.uniqieColors);
-            resultBuilder.Set("colorAnalyze.reducedColors",       m_result.reducedColors);
-            resultBuilder.Set("colorAnalyze.dominantColors",      m_result.dominantColors);
-            resultBuilder.Set("colorAnalyze.dominantColorsImage", m_result.dominantColorsImage);
-            resultBuilder.Set("colorAnalyze.redDeviation",        m_result.redDeviation);
-            resultBuilder.Set("colorAnalyze.greenDeviation",      m_result.greenDeviation);
-            resultBuilder.Set("colorAnalyze.blueDeviation",       m_result.blueDeviation);
-        }
-
-        // Edges
-        resultBuilder.Set("canny.image",                          m_result.cannyImage);
-        resultBuilder.Set("canny.lowerThreshold",                 m_result.lowerThreshold);
-        resultBuilder.Set("canny.upperThreshold",                 m_result.upperThreshold);
-        resultBuilder.Set("canny.apertureSize",                   m_result.apertureSize);
-        
-        // Morphologic analyze
-        resultBuilder.Set("morphology.houghImage",                m_result.houghImage);
-        resultBuilder.Set("morphology.lines.count",               m_result.houghLines.size());
-        resultBuilder.Set("morphology.circles.count",             m_result.houghCircles.size());
-
-        // The rest
-        resultBuilder.Set("processingTimeMs",                     m_result.processingTimeMs);
-
         const unsigned argc = 1;
-        Local<Value> argv[argc] = { obj };
+
+        Local<Value> argv[argc] = { String::New(m_jsonResponse.c_str()) };
 
         // Wrap the callback function call in a TryCatch so that we can call
         // node's FatalException afterwards. This makes it possible to catch
@@ -152,8 +118,7 @@ private:
 private:
     Persistent<Function>    m_callback;
     uv_work_t             * m_request;
-
-    cloudcv::AnalyzeResult  m_result;
+    std::string             m_jsonResponse;
     std::vector<char>       m_imageData;
 };
 

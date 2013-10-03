@@ -7,7 +7,12 @@
     "main": "./build/Release/cloudcv",
 
     "scripts": {
-        "preinstall": "node-gyp clean rebuild"
+        "preinstall": "node-gyp clean rebuild",
+        "test": "expresso test/*"
+    },
+
+    "devDependencies": {
+        "expresso": "*"
     },
     
     "keywords": [
