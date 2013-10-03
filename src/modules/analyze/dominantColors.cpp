@@ -19,11 +19,11 @@ int Color::distanceTo(const cv::Vec3b& other) const
 	int g = (hash >> 8)  & 0xFF; 
 	int b = (hash >> 16) & 0xFF; 
 
-	int or = other.val[2];
-	int og = other.val[1];
-	int ob = other.val[0];
+	int other_r = other.val[2];
+	int other_g = other.val[1];
+	int other_b = other.val[0];
 
-	return SQR(r - or) + SQR(g - og) + SQR(b - ob);
+	return SQR(r - other_r) + SQR(g - other_g) + SQR(b - other_b);
 }
 
 int Color::distanceTo(const Color& other) const
@@ -32,11 +32,11 @@ int Color::distanceTo(const Color& other) const
 	int g = (hash >> 8)  & 0xFF; 
 	int b = (hash >> 16) & 0xFF; 
 
-	int or = other.hash         & 0xFF;
-	int og = (other.hash >> 8)  & 0xFF; 
-	int ob = (other.hash >> 16) & 0xFF; 
+	int other_r = other.hash         & 0xFF;
+	int other_g = (other.hash >> 8)  & 0xFF; 
+	int other_b = (other.hash >> 16) & 0xFF; 
 
-	return SQR(r - or) + SQR(g - og) + SQR(b - ob);
+	return SQR(r - other_r) + SQR(g - other_g) + SQR(b - other_b);
 }
 
 void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)
@@ -72,7 +72,7 @@ void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)
 
 	std::set<Color> colors;
 
-	for (auto it = quantizedColorsTable.begin(); it != quantizedColorsTable.end(); ++it)
+	for (std::map<size_t, size_t>::const_iterator it = quantizedColorsTable.begin(); it != quantizedColorsTable.end(); ++it)
 	{
 		colors.insert(Color(it->first, it->second));
 	}
@@ -90,7 +90,7 @@ void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)
 		std::set_difference(colorsSet.begin(), colorsSet.end(), mfc.begin(), mfc.end(), std::inserter(restColors, restColors.end()));
 		colorsSet = restColors;
 
-		auto c = computeFinalColor(mfc);
+		DominantColor c = computeFinalColor(mfc);
 		mainColors.push_back(c);
 
 	}
@@ -108,9 +108,9 @@ cv::Mat DominantColorsExtractor::getImage() const
 
 	for (size_t i = 0; i < mainColors.size(); i++)
 	{
-		auto c = mainColors[i];
+		DominantColor c = mainColors[i];
 
-		cv::Scalar clr = c.color;
+		cv::Scalar clr = CV_RGB(c.color.val[2], c.color.val[1], c.color.val[0]);
 
 		cv::rectangle(img, cv::Rect(0, i * rowHeight, rowWidth, rowHeight), clr, -1);
 		std::ostringstream os;
@@ -127,13 +127,15 @@ DominantColor DominantColorsExtractor::computeFinalColor(const std::set<Color>& 
 	float final_r = 0, final_g = 0, final_b = 0;
 
 	int totalPixels = 0;
+	
+	typedef std::set<Color>::const_iterator It;
 
-	for (auto it = colorsSet.begin(); it != colorsSet.end(); it++)
+	for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
 	{
 		totalPixels += it->count;
 	}
 
-	for (auto it = colorsSet.begin(); it != colorsSet.end(); it++)
+	for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
 	{
 		Color c = *it;
 	
@@ -160,7 +162,7 @@ DominantColor DominantColorsExtractor::computeFinalColor(const std::set<Color>& 
 	dc.totalPixels = totalPixels;
 	dc.error = 0;
 
-	for (auto it = colorsSet.begin(); it != colorsSet.end(); it++)
+	for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
 	{
 		float weight = (float)it->count / (float)totalPixels;
 		dc.error += weight * it->distanceTo(dc.color);
@@ -176,10 +178,12 @@ bool DominantColorsExtractor::findLargestColorSet(int similarityTolerance, int m
 	if (input.empty())
 		return false;
 
-	auto largestColorIt = input.begin();
+	typedef std::set<Color>::const_iterator It;
+
+	It largestColorIt = input.begin();
 	size_t largestCount = largestColorIt->count;
 
-	for (auto it = input.begin(); it != input.end(); it++)
+	for (It it = input.begin(); it != input.end(); it++)
 	{
 		if (it->count > largestCount)
 		{
@@ -191,7 +195,7 @@ bool DominantColorsExtractor::findLargestColorSet(int similarityTolerance, int m
 	Color mfc = *largestColorIt;
 	int totalPixelsInSet = 0;
 
-	for (auto it = input.begin(); it != input.end(); it++)
+	for (It it = input.begin(); it != input.end(); it++)
 	{
 		Color other = *it;
 		int distance = mfc.distanceTo(other);
