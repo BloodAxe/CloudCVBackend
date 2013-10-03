@@ -1,7 +1,6 @@
 language: node_js
 before_install: 
  - sudo apt-get install build-essential
- https://github.com/Itseez/opencv/archive/2.4.6.2.zip
  - curl -sL https://github.com/Itseez/opencv/archive/2.4.6.2.zip > opencv.zip
  - unzip opencv.zip
  - rm opencv.zip
