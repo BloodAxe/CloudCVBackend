@@ -143,6 +143,11 @@ Marshal::NativeResult Marshal::Native(const ImageInformation& value)
 	HandleScope scope;
 	Local<Object> structure = Object::New();
 
+	structure->Set(String::NewSymbol("grayscaleImage"),	Native(value.grayscaleImage));
+	structure->Set(String::NewSymbol("frameSize"),		Native(value.frameSize));
+	structure->Set(String::NewSymbol("aspectRatio"), 	Native(value.aspectRatio));
+	structure->Set(String::NewSymbol("hasColor"), 		Native(value.hasColor));
+
 	return scope.Close(structure);
 }
 
@@ -177,12 +182,12 @@ Marshal::NativeResult Marshal::Native(const ColorsInformation& value)
 	HandleScope scope;
 	Local<Object> structure = Object::New();
 
-	structure->Set(String::NewSymbol("colorDeviation"),	Native(value.colorDeviation));
-	structure->Set(String::NewSymbol("uniqieColors"),	Native(value.uniqieColors));
-	structure->Set(String::NewSymbol("histogramImage"), Native(value.reducedColors));
-	structure->Set(String::NewSymbol("intensity"),		Native(value.dominantColors));
-	structure->Set(String::NewSymbol("rmsContrast"),	Native(value.dominantColorsImage));
-	structure->Set(String::NewSymbol("histogramImage"), Native(value.histogramImage));
+	structure->Set(String::NewSymbol("colorDeviation"),			Native(value.colorDeviation));
+	structure->Set(String::NewSymbol("uniqieColors"),			Native(value.uniqieColors));
+	structure->Set(String::NewSymbol("reducedColors"), 			Native(value.reducedColors));
+	structure->Set(String::NewSymbol("dominantColors"),			Native(value.dominantColors));
+	structure->Set(String::NewSymbol("dominantColorsImage"),	Native(value.dominantColorsImage));
+	structure->Set(String::NewSymbol("histogramImage"), 		Native(value.histogramImage));
 
 	return scope.Close(structure);
 }
