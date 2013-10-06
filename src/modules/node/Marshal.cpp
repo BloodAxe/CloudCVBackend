@@ -1,4 +1,5 @@
 #include "Marshal.hpp"
+#include "node/node_helpers.hpp"
 
 using namespace v8;
 
@@ -79,6 +80,14 @@ Marshal::NativeResult Marshal::Native(const cv::Scalar& value)
 	return scope.Close(result);
 }
 
+Marshal::NativeResult Marshal::Native(const cv::Mat& value)
+{
+	HandleScope scope;
+	return scope.Close(Native(toDataUri(value, kImageTypePng)));
+	
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // CloudCV Structures
@@ -105,4 +114,87 @@ Marshal::NativeResult Marshal::Native(const rgb8u_color_t& value)
 	return scope.Close(structure);
 }
 
+Marshal::NativeResult Marshal::Native(const RGBDistribution& value)
+{
+	HandleScope scope;
+	Local<Object> structure = Object::New();
+	structure->Set(String::NewSymbol("r"), Native(value.r));
+	structure->Set(String::NewSymbol("g"), Native(value.g));
+	structure->Set(String::NewSymbol("b"), Native(value.b));
+	return scope.Close(structure);
+}
 
+Marshal::NativeResult Marshal::Native(const AnalyzeResult& value)
+{
+	HandleScope scope;
+	Local<Object> structure = Object::New();
+
+	structure->Set(String::NewSymbol("common"),    Native(value.common));
+	structure->Set(String::NewSymbol("grayscale"), Native(value.grayscale));
+	structure->Set(String::NewSymbol("color"),     Native(value.color));
+	structure->Set(String::NewSymbol("edges"),     Native(value.edges));
+	structure->Set(String::NewSymbol("profiling"), Native(value.profiling));
+
+	return scope.Close(structure);
+}
+
+Marshal::NativeResult Marshal::Native(const ImageInformation& value)
+{
+	HandleScope scope;
+	Local<Object> structure = Object::New();
+
+	return scope.Close(structure);
+}
+
+Marshal::NativeResult Marshal::Native(const DominantColor& value)
+{
+	HandleScope scope;
+	Local<Object> structure = Object::New();
+
+	structure->Set(String::NewSymbol("color"),				Native(value.color));
+	structure->Set(String::NewSymbol("error"),				Native(value.error));
+	structure->Set(String::NewSymbol("interclassVariance"), Native(value.interclassVariance));
+	structure->Set(String::NewSymbol("totalPixels"),		Native(value.totalPixels));
+
+	return scope.Close(structure);
+
+}
+
+Marshal::NativeResult Marshal::Native(const IntensityInformation& value)
+{
+	HandleScope scope;
+	Local<Object> structure = Object::New();
+
+	structure->Set(String::NewSymbol("intensity"),		Native(value.intensity));
+	structure->Set(String::NewSymbol("rmsContrast"),	Native(value.rmsContrast));
+	structure->Set(String::NewSymbol("histogramImage"), Native(value.histogramImage));
+
+	return scope.Close(structure);
+}
+
+Marshal::NativeResult Marshal::Native(const ColorsInformation& value)
+{
+	HandleScope scope;
+	Local<Object> structure = Object::New();
+
+	structure->Set(String::NewSymbol("colorDeviation"),	Native(value.colorDeviation));
+	structure->Set(String::NewSymbol("uniqieColors"),	Native(value.uniqieColors));
+	structure->Set(String::NewSymbol("histogramImage"), Native(value.reducedColors));
+	structure->Set(String::NewSymbol("intensity"),		Native(value.dominantColors));
+	structure->Set(String::NewSymbol("rmsContrast"),	Native(value.dominantColorsImage));
+	structure->Set(String::NewSymbol("histogramImage"), Native(value.histogramImage));
+
+	return scope.Close(structure);
+}
+
+Marshal::NativeResult Marshal::Native(const MorphologicInformation& value)
+{
+	HandleScope scope;
+	Local<Object> structure = Object::New();
+
+	structure->Set(String::NewSymbol("cannyImage"),			 Native(value.cannyImage));
+	structure->Set(String::NewSymbol("cannyLowerThreshold"), Native(value.cannyLowerThreshold));
+	structure->Set(String::NewSymbol("cannyUpperThreshold"), Native(value.cannyUpperThreshold));
+
+	return scope.Close(structure);
+}

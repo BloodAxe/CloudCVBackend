@@ -1,7 +1,6 @@
-#include "binding.hpp"
-#include "analyze.hpp"
-#include "../../node/node_helpers.hpp"
-#include "modules/common/Serialization.hpp"
+#include "modules/analyze/binding.hpp"
+#include "modules/analyze/analyze.hpp"
+#include "modules/node/Marshal.hpp"
 
 #include <node_buffer.h>
 
@@ -36,8 +35,8 @@ struct ImageAnalyzeTask
     void StartTask()
     {
         // Schedule our work request with libuv. Here you can specify the functions
-        // that should be executed in the threadpool and back in the main thread
-        // after the threadpool function completed.
+        // that should be executed in the thread pool and back in the main thread
+        // after the thread pool function completed.
         int status = uv_queue_work( uv_default_loop(), 
                                     m_request, 
                                     &ImageAnalyzeTask::analyzeImageAsyncWork,
@@ -55,19 +54,7 @@ protected:
     virtual void ExecuteNative()
     {
         cv::Mat input = cv::imdecode(m_imageData, 1);
-
-        cloudcv::AnalyzeResult  m_result;
-        analyzeImage(input, m_result);
-
-        std::ostringstream os;
-
-        // Prettyfy JSON output
-        serializeJson<true>(m_result, os);
-
-        // Write JSON compact
-        //serializeJson<false>(m_result, os);
-
-        m_jsonResponse = os.str();
+        buildFromImage(input, m_analyzeResult);
     }
 
 
@@ -79,8 +66,7 @@ protected:
         HandleScope scope;
 
         const unsigned argc = 1;
-
-        Local<Value> argv[argc] = { String::New(m_jsonResponse.c_str()) };
+        Local<Value> argv[argc] = { Marshal::Native(m_analyzeResult) };
 
         // Wrap the callback function call in a TryCatch so that we can call
         // node's FatalException afterwards. This makes it possible to catch
@@ -118,8 +104,9 @@ private:
 private:
     Persistent<Function>    m_callback;
     uv_work_t             * m_request;
-    std::string             m_jsonResponse;
-    std::vector<char>       m_imageData;
+	
+	AnalyzeResult  m_analyzeResult;
+	std::vector<char>       m_imageData;
 };
 
 

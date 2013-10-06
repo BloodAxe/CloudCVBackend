@@ -8,7 +8,7 @@
 #define kImageTypePng   "image/png"
 #define kImageTypeJpeg  "image/png"
 
-std::string toDataUri(cv::Mat& img, const char * imageMimeType = kImageTypePng);
+std::string toDataUri(const cv::Mat& img, const char * imageMimeType = kImageTypePng);
 
 
 /**

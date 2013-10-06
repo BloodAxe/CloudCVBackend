@@ -5,53 +5,59 @@
 
 #include <opencv2/opencv.hpp>
 
-namespace cloudcv
+struct ImageInformation
 {
+	cv::Mat  grayscaleImage;	// Grayscale image
+	cv::Size frameSize;			// Size of input image       
+	cv::Size aspectRatio;		// Aspect ratio of the input image
 
+	bool hasColor;
+};
 
-	/**
-	 * Result of image analyze
-	 */
-	struct AnalyzeResult
-	{
-		cv::Mat source;
-		cv::Mat grayscale;
+struct IntensityInformation
+{
+	cv::Mat_<uint8_t> image;
+	cv::Mat      histogramImage;
+	Distribution intensity;		// Distribution of the gray scale image intensity
+	float        rmsContrast;   // RMS contrast measure
+};
 
-		cv::Size frameSize;   // Size of input image       
-		cv::Size aspectRatio; // Aspect ratio of the input image
+struct ColorsInformation
+{
+	cv::Mat					   histogramImage;
+	cv::Mat                    dominantColorsImage;
 
-		// Histogram
-		cv::Mat colorHistogram;
-		cv::Mat grayHistogram;
+	size_t                     uniqieColors;
+	size_t                     reducedColors;
+	std::vector<DominantColor> dominantColors;
+	RGBDistribution             colorDeviation;
+};
 
-		// Gray scale image
-		Distribution intensity; // Distribution of the gray scale image intensity
-		float   rmsContrast;    // RMS contrast measure
+struct MorphologicInformation
+{
+	cv::Mat cannyImage;
 
-		// Color analyze
-		size_t                     uniqieColors;
-		size_t                     reducedColors;
-		std::vector<DominantColor> dominantColors;
-		cv::Mat                    dominantColorsImage;
-		ColorDeviation             colorDeviation;
-		
+	int     cannyLowerThreshold;
+	int     cannyUpperThreshold;
+};
 
-		// Edges
-		cv::Mat cannyImage;
-		int     cannyLowerThreshold;
-		int     cannyUpperThreshold;
-		int     apertureSize;
+/**
+* Result of image analyze
+*/
+struct AnalyzeResult
+{
+	ImageInformation             common;
+	IntensityInformation         grayscale;
+	ColorsInformation            color;
+	MorphologicInformation       edges;
 
-		// Morphologic analyze
-		cv::Mat                houghImage;
-		std::vector<cv::Vec4i> houghLines;
-		std::vector<cv::Vec4i> houghCircles;
+	std::map<std::string, float> profiling; 
+};
 
-		double processingTimeMs;
-	};
+std::ostream& operator<<(std::ostream& out, const AnalyzeResult& res);
 
-	std::ostream& operator<<(std::ostream& out, const AnalyzeResult& res);
-
-	void analyzeImage(cv::Mat src, AnalyzeResult& result);
-
-}
+void buildFromImage(cv::Mat input, ImageInformation& value);
+void buildFromImage(cv::Mat input, IntensityInformation& value);
+void buildFromImage(cv::Mat input, ColorsInformation& value);
+void buildFromImage(cv::Mat input, MorphologicInformation& value, int cannyLower, int cannyUpper);
+void buildFromImage(cv::Mat input, AnalyzeResult& value);

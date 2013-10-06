@@ -13,5 +13,12 @@ struct Distribution
 	float standardDeviation;
 	float entropy;
 };
+
+struct RGBDistribution
+{
+	Distribution r;
+	Distribution g;
+	Distribution b;
+};
 	
 Distribution distribution(cv::InputArray data);

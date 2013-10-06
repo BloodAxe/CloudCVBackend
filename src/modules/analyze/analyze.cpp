@@ -2,8 +2,6 @@
 #include "dominantColors.hpp"
 #include "modules/common/ScopedTimer.hpp"
 
-namespace cloudcv
-{
 	void drawHistogram(cv::Mat src, cv::Mat& histImage)
 	{
 		using namespace cv;
@@ -109,78 +107,69 @@ namespace cloudcv
 		return sqrt(sum / totalPixels);
 	}
 
-	void analyzeImage(cv::Mat src, AnalyzeResult& result)
+	void buildFromImage(cv::Mat input, ImageInformation& value)
 	{
-		ScopedTimer timer;
-
-		result = AnalyzeResult();
-
-		result.source      = src;
-		result.frameSize   = src.size();
-		result.aspectRatio = aspectRatio(src.size());
-
-		if (src.channels() == 1)
+		if (input.channels() == 1)
 		{
-			result.grayscale = src;
+			value.grayscaleImage = input;
 		}
 		else
 		{
-			cv::cvtColor(src, result.grayscale, cv::COLOR_BGR2GRAY);
-
-			// Process color image here:
-			cv::Mat_<cv::Vec3b> colorImg = src;
-			
-			DominantColorsExtractor colorsExtractor;
-			colorsExtractor.process(colorImg);
-
-			result.dominantColors      = colorsExtractor.mainColors;
-			result.dominantColorsImage = colorsExtractor.getImage();
-
-			result.uniqieColors        = colorsExtractor.getUniqueColors();
-			result.reducedColors       = colorsExtractor.getRedicedColors();
-			result.colorDeviation      = colorsExtractor.getColorDeviation();
-
-			drawHistogram(src, result.colorHistogram);
+			cv::cvtColor(input, value.grayscaleImage, cv::COLOR_BGR2GRAY);
 		}
 
+		value.hasColor = input.channels() == 3 || input.channels() == 4;
+
+		value.frameSize   = input.size();
+		value.aspectRatio = aspectRatio(input.size());
+	}
+
+	void buildFromImage(cv::Mat input, IntensityInformation& value)
+	{
 		// Process the rest with grayscale image
-		result.intensity   = distribution(result.grayscale);
-		result.rmsContrast = rmsContrast(result.grayscale);
-		
+		value.intensity   = distribution(input);
+		value.rmsContrast = rmsContrast(input);
+
 		// Draw grayscale histogram
-		drawHistogram(result.grayscale, result.grayHistogram);
+		drawHistogram(input, value.histogramImage);
+	}
 
+	void buildFromImage(cv::Mat input, ColorsInformation& value)
+	{
+		DominantColorsExtractor colorsExtractor;
+		colorsExtractor.process(input);
 
-		// Canny
+		value.dominantColors      = colorsExtractor.mainColors;
+		value.dominantColorsImage = colorsExtractor.getImage();
+
+		value.uniqieColors        = colorsExtractor.getUniqueColors();
+		value.reducedColors       = colorsExtractor.getRedicedColors();
+		value.colorDeviation      = colorsExtractor.getColorDeviation();
+
+		drawHistogram(input, value.histogramImage);
+	}
+	
+	void buildFromImage(cv::Mat input, MorphologicInformation& value, int cannyLower, int cannyUpper)
+	{
+		value.cannyLowerThreshold = cannyLower; //static_cast<int>(0.5 * result.intensity.average);
+		value.cannyUpperThreshold = cannyUpper; //static_cast<int>(1.5 * result.intensity.average);
+
+		cv::Canny(input, value.cannyImage, cannyLower, cannyUpper, 3);   
+	}
+
+	void buildFromImage(cv::Mat input, AnalyzeResult& value)
+	{
+		value = AnalyzeResult();
+
+		buildFromImage(input, value.common);
+		buildFromImage(input, value.grayscale);
+		buildFromImage(value.common.grayscaleImage, value.edges, 0.5 * value.grayscale.intensity.average, 1.5 * value.grayscale.intensity.average);
+
+		if (value.common.hasColor)
 		{
-			result.cannyLowerThreshold = static_cast<int>(0.5 * result.intensity.average);
-			result.cannyUpperThreshold = static_cast<int>(1.5 * result.intensity.average);
-			result.apertureSize = 3;
-
-			cv::Canny(result.grayscale, result.cannyImage, result.cannyLowerThreshold, result.cannyUpperThreshold, result.apertureSize);        
+			buildFromImage(input, value.color);
 		}
-
-
-		// Hough
-		{
-			cv::Mat houghImage = result.cannyImage.clone();
-
-			cv::HoughLinesP(houghImage, result.houghLines, 2, 2 * CV_PI / 180, 50, 50, 5);
-
-			cv::Mat linesImg(src.size(), src.type());
-			linesImg = cv::Scalar::all(0);
-
-			for (size_t lineIdx= 0; lineIdx < result.houghLines.size(); lineIdx++)
-			{
-				cv::Vec4i v = result.houghLines[lineIdx];
-				cv::line(linesImg, cv::Point(v[0], v[1]), cv::Point(v[2], v[3]), cv::Scalar(0,255,0,255), CV_AA);
-			}
-
-			result.houghImage = 0.5 * src + linesImg;        
-		}
-
-		result.processingTimeMs = timer.executionTimeMs();
-	} 
+	}
 
 	std::ostream& operator<<(std::ostream& str, const Distribution& res)
 	{
@@ -192,11 +181,11 @@ namespace cloudcv
 		return str;
 	}
 
-	std::ostream& operator<<(std::ostream& str, const ColorDeviation& res)
+	std::ostream& operator<<(std::ostream& str, const RGBDistribution& res)
 	{
-		str << "R:"<< res.red << std::endl;
-		str << "G:"<< res.green << std::endl;
-		str << "B:"<< res.blue << std::endl;
+		str << "R:"<< res.r << std::endl;
+		str << "G:"<< res.g << std::endl;
+		str << "B:"<< res.b << std::endl;
 		
 		return str;
 	}
@@ -209,33 +198,31 @@ namespace cloudcv
 		return str;
 	}
 
-	std::ostream& operator<<(std::ostream& str, const AnalyzeResult& res)
+	/*std::ostream& operator<<(std::ostream& str, const AnalyzeResult& res)
 	{
-		str << "Frame Size  :" << res.frameSize   << std::endl;
-		str << "Aspect Ratio:" << res.aspectRatio << std::endl;
+	str << "Frame Size  :" << res.frameSize   << std::endl;
+	str << "Aspect Ratio:" << res.aspectRatio << std::endl;
 
-		std::cout << "Gray Analyze" << std::endl;
+	std::cout << "Gray Analyze" << std::endl;
 
-		str << "Intensity:" << std::endl << res.intensity << std::endl;
-		str << "RMS Contrast:" << res.rmsContrast << std::endl;
+	str << "Intensity:" << std::endl << res.intensity << std::endl;
+	str << "RMS Contrast:" << res.rmsContrast << std::endl;
 
-		std::cout << "Color Analyze" << std::endl;
-		str << "Dominant Colors: " << res.dominantColors.size() << std::endl;
-		for (size_t i=0; i < res.dominantColors.size(); i++)
-		{
-			str << "Color " << i << std::endl;
-			str << res.dominantColors[i] << std::endl;
-		}
-		str << "Color Variation:" << std::endl;
-		str << res.colorDeviation << std::endl;
-
-		std::cout << "Morphology analyze" << std::endl;
-		str << res.cannyLowerThreshold << std::endl;
-		str << res.cannyUpperThreshold << std::endl;
-
-		str << "Processing time (ms):" << res.processingTimeMs;
-
-		return str;
+	std::cout << "Color Analyze" << std::endl;
+	str << "Dominant Colors: " << res.dominantColors.size() << std::endl;
+	for (size_t i=0; i < res.dominantColors.size(); i++)
+	{
+	str << "Color " << i << std::endl;
+	str << res.dominantColors[i] << std::endl;
 	}
+	str << "Color Variation:" << std::endl;
+	str << res.colorDeviation << std::endl;
 
-}
+	std::cout << "Morphology analyze" << std::endl;
+	str << res.cannyLowerThreshold << std::endl;
+	str << res.cannyUpperThreshold << std::endl;
+
+	str << "Processing time (ms):" << res.processingTimeMs;
+
+	return str;
+	}*/

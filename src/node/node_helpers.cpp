@@ -142,7 +142,7 @@ unsigned char *base64_decode(const char *data,
 }
 **/
 
-std::string toDataUri(cv::Mat& img, const char * imageMimeType)
+std::string toDataUri(const cv::Mat& img, const char * imageMimeType)
 {
     std::vector<unsigned char> buf, encoded;
     cv::imencode(".png", img, buf);

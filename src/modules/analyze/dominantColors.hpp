@@ -31,12 +31,7 @@ struct DominantColor
 	float     error;
 };
 
-struct ColorDeviation
-{
-	Distribution red;
-	Distribution green;
-	Distribution blue;
-};
+
 
 class DominantColorsExtractor
 {
@@ -47,7 +42,7 @@ public:
 
 	cv::Mat getImage() const;
 
-	ColorDeviation getColorDeviation() const;
+	RGBDistribution getColorDeviation() const;
 
 	size_t getUniqueColors() const;
 	size_t getRedicedColors() const;

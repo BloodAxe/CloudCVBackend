@@ -211,13 +211,13 @@ bool DominantColorsExtractor::findLargestColorSet(int similarityTolerance, int m
 }
 
 
-ColorDeviation DominantColorsExtractor::getColorDeviation() const
+RGBDistribution DominantColorsExtractor::getColorDeviation() const
 {
-	ColorDeviation cd;
+	RGBDistribution cd;
 
-	cd.red   = distribution(rVec);
-	cd.green = distribution(gVec);
-	cd.blue  = distribution(bVec);
+	cd.r   = distribution(rVec);
+	cd.g = distribution(gVec);
+	cd.b  = distribution(bVec);
 
 	return cd;
 }
