@@ -92,9 +92,8 @@
                         "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/libtiff.lib",
                         "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/zlib.lib"
                     ]
-                }],      
-                
-                ['OS=="linux"', {
+                }
+                , {
 
                     'defines': [
                         'TARGET_PLATFORM_LINUX',
