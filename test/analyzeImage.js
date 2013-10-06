@@ -3,12 +3,12 @@ var fs = require('fs');
 
 var cv = require("../build/Release/cloudcv");
 
-exports['test cv.analyzeImage'] = function() {
+exports['test cv.analyze'] = function() {
 
-	var imageData = fs.readFileSync("example.jpg");
+	var imageData = fs.readFileSync("test/example.jpg");
 	assert.isNotNull(imageData);
 
-	cv.analyzeImage(imageData, function(result) {
+	cv.analyze(imageData, function(result) {
 
 		console.log(result);
 		assert.isNotNull(result);
