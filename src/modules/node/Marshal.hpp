@@ -43,10 +43,12 @@ public:
 	template<typename _Val_type> 
 	static NativeResult Native(const std::map<std::string, _Val_type>& values)
 	{
+		using namespace v8;
+
 		HandleScope scope;
 		Local<Object> structure = Object::New();
 
-		typedef std::map<std::string, _Val_type>::const_iterator const_iterator;
+		typedef typename std::map<std::string, _Val_type>::const_iterator const_iterator;
 		for (const_iterator it = values.begin(); it != values.end(); ++it)
 		{
 			structure->Set(Native(it->first), Native(it->second));
