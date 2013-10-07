@@ -162,7 +162,8 @@
 		value = AnalyzeResult();
 
 		buildFromImage(input, value.common);
-		buildFromImage(input, value.grayscale);
+		
+		buildFromImage(value.common.grayscaleImage, value.grayscale);
 		buildFromImage(value.common.grayscaleImage, value.edges, 0.5 * value.grayscale.intensity.average, 1.5 * value.grayscale.intensity.average);
 
 		if (value.common.hasColor)
