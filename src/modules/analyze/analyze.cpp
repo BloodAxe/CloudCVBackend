@@ -166,8 +166,8 @@
 
 		if (input.rows > maxWidth || input.cols > maxHeight)
 		{
-			const int imgHeight = input.cols;
-			const int imgWidth = input.rows;
+			const int imgWidth = input.cols;
+			const int imgHeight = input.rows;
 
 			int width = input.cols;
 			int height = input.rows;
