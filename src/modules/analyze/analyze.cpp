@@ -109,6 +109,8 @@
 
 	void buildFromImage(cv::Mat input, ImageInformation& value)
 	{
+		value.sourceImage = input;
+
 		if (input.channels() == 1)
 		{
 			value.grayscaleImage = input;
@@ -158,7 +160,35 @@
 	}
 
 	void buildFromImage(cv::Mat input, AnalyzeResult& value)
-	{
+	{		
+		const int maxWidth = 512;
+		const int maxHeight = 512;
+
+		if (input.rows > maxWidth || input.cols > maxHeight)
+		{
+			const int imgHeight = input.cols;
+			const int imgWidth = input.rows;
+
+			int width = input.cols;
+			int height = input.rows;
+
+	        if (maxWidth && width > maxWidth)
+	        {
+	            width = maxWidth;
+	            height = (imgHeight * width / imgWidth);
+	        }
+
+	        if (maxHeight && height > maxHeight)
+	        {
+	            height = maxHeight;
+	            width = (imgWidth * height / imgHeight);
+	        }
+
+			cv::Mat normalizedImage;
+			cv::resize(input, normalizedImage, cv::Size(width, height));
+			input = normalizedImage;
+		}
+
 		value = AnalyzeResult();
 
 		buildFromImage(input, value.common);

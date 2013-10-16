@@ -143,6 +143,7 @@ Marshal::NativeResult Marshal::Native(const ImageInformation& value)
 	HandleScope scope;
 	Local<Object> structure = Object::New();
 
+	structure->Set(String::NewSymbol("sourceImage"),	Native(value.sourceImage));
 	structure->Set(String::NewSymbol("grayscaleImage"),	Native(value.grayscaleImage));
 	structure->Set(String::NewSymbol("frameSize"),		Native(value.frameSize));
 	structure->Set(String::NewSymbol("aspectRatio"), 	Native(value.aspectRatio));

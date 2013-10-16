@@ -7,6 +7,7 @@
 
 struct ImageInformation
 {
+	cv::Mat  sourceImage;       // Source image (can be resized)
 	cv::Mat  grayscaleImage;	// Grayscale image
 	cv::Size frameSize;			// Size of input image       
 	cv::Size aspectRatio;		// Aspect ratio of the input image
@@ -30,7 +31,7 @@ struct ColorsInformation
 	size_t                     uniqieColors;
 	size_t                     reducedColors;
 	std::vector<DominantColor> dominantColors;
-	RGBDistribution             colorDeviation;
+	RGBDistribution            colorDeviation;
 };
 
 struct MorphologicInformation

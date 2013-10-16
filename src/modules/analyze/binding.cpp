@@ -54,7 +54,10 @@ protected:
     virtual void ExecuteNative()
     {
         cv::Mat input = cv::imdecode(m_imageData, 1);
-        buildFromImage(input, m_analyzeResult);
+        if (!input.empty())
+        {
+            buildFromImage(input, m_analyzeResult);
+        }
     }
 
 
@@ -105,7 +108,7 @@ private:
     Persistent<Function>    m_callback;
     uv_work_t             * m_request;
 	
-	AnalyzeResult  m_analyzeResult;
+	AnalyzeResult           m_analyzeResult;
 	std::vector<char>       m_imageData;
 };
 
