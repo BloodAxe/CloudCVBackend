@@ -107,6 +107,10 @@
                         'TARGET_PLATFORM_LINUX',
                     ],
 
+                    'include_dirs': [
+                        '/usr/local/include'
+                    ],
+                    
                     'libraries': [
                         "/usr/local/lib/libopencv_contrib.a",
                         "/usr/local/lib/libopencv_stitching.a",

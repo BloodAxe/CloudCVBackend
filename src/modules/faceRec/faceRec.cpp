@@ -64,7 +64,7 @@ void detectFace(cv::Mat img, FaceDetectionResult& result)
 
     result.detectionTimeMs = timer.executionTimeMs();
 
-    for (auto r = result.faces.begin(); r != result.faces.end(); r++, detectedFacesCounter++ )
+    for (std::vector<cv::Rect>::const_iterator r = result.faces.begin(); r != result.faces.end(); r++, detectedFacesCounter++ )
     {
         cv::Mat smallImgROI;
         std::vector<cv::Rect> nestedObjects;
@@ -103,7 +103,7 @@ void detectFace(cv::Mat img, FaceDetectionResult& result)
             ,
             cv::Size(30, 30) );
 
-        for (auto nr = nestedObjects.begin(); nr != nestedObjects.end(); nr++ )
+        for (std::vector<cv::Rect>::const_iterator nr = nestedObjects.begin(); nr != nestedObjects.end(); nr++ )
         {
             center.x = cvRound((r->x + nr->x + nr->width*0.5));
             center.y = cvRound((r->y + nr->y + nr->height*0.5));
