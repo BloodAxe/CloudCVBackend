@@ -23,7 +23,7 @@ bool initCascades(std::string cascadeName, std::string nestedCascadeName)
         if (!faceCascade->load(cascadeName))
         {
             std::cerr << "ERROR: Could not load classifier cascade" << std::endl;
-            faceCascade = NULL;
+            faceCascade = cv::Ptr<cv::CascadeClassifier>();
         }
     }
 
@@ -32,7 +32,7 @@ bool initCascades(std::string cascadeName, std::string nestedCascadeName)
         nestedCascade = cv::Ptr<cv::CascadeClassifier>(new cv::CascadeClassifier());
         if (!nestedCascade->load( nestedCascadeName ) )
         {
-            nestedCascade = NULL;
+            nestedCascade = cv::Ptr<cv::CascadeClassifier>();
             std::cerr << "WARNING: Could not load classifier cascade for nested objects" << std::endl;
         }
     }
