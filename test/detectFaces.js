@@ -10,7 +10,7 @@ exports['test cv.detectFaces'] = function() {
 
     cv.detectFaces(imageData, function(result) {
 
-        console.log(result);
+	assert.equal(1, result.faces.length);
         assert.isNotNull(result);
     });
 
