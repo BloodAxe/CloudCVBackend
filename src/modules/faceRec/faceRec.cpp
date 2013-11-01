@@ -5,6 +5,10 @@
 cv::Ptr<cv::CascadeClassifier> faceCascade;
 cv::Ptr<cv::CascadeClassifier> nestedCascade;
 
+#ifndef CV_HAAR_SCALE_IMAGE
+#define CV_HAAR_SCALE_IMAGE 2
+#endif
+
 const static cv::Scalar colors[] =  {	CV_RGB(0,0,255),
     CV_RGB(0,128,255),
     CV_RGB(0,255,255),
@@ -49,18 +53,13 @@ void detectFace(cv::Mat img, FaceDetectionResult& result)
 
 
     int detectedFacesCounter = 0;
+    int cascadeSearchOpt = CV_HAAR_SCALE_IMAGE;
 
     cv::Mat gray;
     cv::cvtColor(result.imageWithFaces, gray, cv::COLOR_BGR2GRAY);
     cv::equalizeHist( gray, gray );
 
-    faceCascade->detectMultiScale( gray, result.faces,
-        1.1, 2, 0
-        //|CV_HAAR_FIND_BIGGEST_OBJECT
-        //|CV_HAAR_DO_ROUGH_SEARCH
-        |CV_HAAR_SCALE_IMAGE
-        ,
-        cv::Size(30, 30) );
+    faceCascade->detectMultiScale( gray, result.faces, 1.1, 2, cascadeSearchOpt, cv::Size(30, 30) );
 
     result.detectionTimeMs = timer.executionTimeMs();
 
@@ -94,14 +93,7 @@ void detectFace(cv::Mat img, FaceDetectionResult& result)
             continue;
 
         smallImgROI = gray(*r);
-        nestedCascade->detectMultiScale( smallImgROI, nestedObjects,
-            1.1, 2, 0
-            //|CV_HAAR_FIND_BIGGEST_OBJECT
-            //|CV_HAAR_DO_ROUGH_SEARCH
-            //|CV_HAAR_DO_CANNY_PRUNING
-            |CV_HAAR_SCALE_IMAGE
-            ,
-            cv::Size(30, 30) );
+        nestedCascade->detectMultiScale( smallImgROI, nestedObjects, 1.1, 2, cascadeSearchOpt, cv::Size(30, 30) );
 
         for (std::vector<cv::Rect>::const_iterator nr = nestedObjects.begin(); nr != nestedObjects.end(); nr++ )
         {
