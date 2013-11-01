@@ -18,7 +18,7 @@ bool initCascades(std::string cascadeName, std::string nestedCascadeName)
 {
     if (!faceCascade)
     {
-        faceCascade = new cv::CascadeClassifier();
+        faceCascade = cv::Ptr<cv::CascadeClassifier>(new cv::CascadeClassifier());
 
         if (!faceCascade->load(cascadeName))
         {
@@ -29,7 +29,7 @@ bool initCascades(std::string cascadeName, std::string nestedCascadeName)
 
     if (!nestedCascade)
     {
-        nestedCascade = new cv::CascadeClassifier();
+        nestedCascade = cv::Ptr<cv::CascadeClassifier>(new cv::CascadeClassifier());
         if (!nestedCascade->load( nestedCascadeName ) )
         {
             nestedCascade = NULL;
