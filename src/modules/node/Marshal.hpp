@@ -3,6 +3,7 @@
 #include "modules/common/Numeric.hpp"
 #include "modules/common/Color.hpp"
 #include "modules/analyze/analyze.hpp"
+#include "modules/faceRec/faceRec.hpp"
 
 #include <node_buffer.h>
 #include <node.h>
@@ -64,7 +65,8 @@ public:
 	static NativeResult Native(const cv::Point& value);
 	static NativeResult Native(const cv::Point2f& value);
 	static NativeResult Native(const cv::Mat& value);
-	
+    static NativeResult Native(const cv::Rect& value);
+
 	template<typename _Tp, int cn> 
 	static NativeResult Native(const cv::Vec<_Tp, cn>& value)
 	{
@@ -97,5 +99,7 @@ public:
 	static NativeResult Native(const ColorsInformation& value);
 	static NativeResult Native(const MorphologicInformation& value);
 	static NativeResult Native(const DominantColor& value);
+
+    static NativeResult Native(const FaceDetectionResult& value);
 
 };

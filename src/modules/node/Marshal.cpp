@@ -51,6 +51,17 @@ Marshal::NativeResult Marshal::Native(const cv::Size& value)
 	return scope.Close(structure);
 }
 
+Marshal::NativeResult Marshal::Native(const cv::Rect& value)
+{
+    HandleScope scope;
+    Local<Object> structure = Object::New();
+    structure->Set(String::NewSymbol("x"),  Native(value.x));
+    structure->Set(String::NewSymbol("y"),  Native(value.y));
+    structure->Set(String::NewSymbol("width"),  Native(value.width));
+    structure->Set(String::NewSymbol("height"), Native(value.height));
+    return scope.Close(structure);
+}
+
 Marshal::NativeResult Marshal::Native(const cv::Point& value)
 {
 	HandleScope scope;
@@ -203,4 +214,16 @@ Marshal::NativeResult Marshal::Native(const MorphologicInformation& value)
 	structure->Set(String::NewSymbol("cannyUpperThreshold"), Native(value.cannyUpperThreshold));
 
 	return scope.Close(structure);
+}
+
+Marshal::NativeResult Marshal::Native(const FaceDetectionResult& value)
+{
+    HandleScope scope;
+    Local<Object> structure = Object::New();
+
+    structure->Set(String::NewSymbol("faces"),            Native(value.faces));
+    structure->Set(String::NewSymbol("imageWithFaces"),   Native(value.imageWithFaces));
+    structure->Set(String::NewSymbol("detectionTimeMs"),  Native(value.detectionTimeMs));
+
+    return scope.Close(structure);
 }

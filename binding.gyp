@@ -23,12 +23,20 @@
                 "src/modules/common/Serialization.hpp", 
                 "src/modules/common/ScopedTimer.hpp", 
 
+                "src/modules/common/ImageUtils.hpp", 
+                "src/modules/common/ImageUtils.cpp", 
+
                 "src/modules/analyze/analyze.cpp", 
                 "src/modules/analyze/analyze.hpp", 
                 "src/modules/analyze/binding.hpp", 
                 "src/modules/analyze/binding.cpp", 
                 "src/modules/analyze/dominantColors.hpp", 
                 "src/modules/analyze/dominantColors.cpp", 
+
+                "src/modules/faceRec/faceRec.cpp", 
+                "src/modules/faceRec/faceRec.hpp", 
+                "src/modules/faceRec/faceRecBinding.hpp", 
+                "src/modules/faceRec/faceRecBinding.cpp", 
 
                 "src/modules/buildInformation/buildInformation.cpp", 
                 "src/modules/buildInformation/buildInformation.hpp", 
