@@ -10,6 +10,7 @@ using namespace node;
 struct ImageAnalyzeTask
 {       
     ImageAnalyzeTask(Local<Value> imageBuffer, Local<Value> callback)
+        : m_imageProcessed(false)
     {
         HandleScope scope;
         
@@ -56,6 +57,7 @@ protected:
         cv::Mat input = cv::imdecode(m_imageData, 1);
         if (!input.empty())
         {
+            m_imageProcessed = true;
             buildFromImage(input, m_analyzeResult);
         }
     }
@@ -69,7 +71,7 @@ protected:
         HandleScope scope;
 
         const unsigned argc = 1;
-        Local<Value> argv[argc] = { Marshal::Native(m_analyzeResult) };
+        Local<Value> argv[argc] = { m_imageProcessed ? Marshal::Native(m_analyzeResult) : Local<Value>::New(Undefined()) };
 
         // Wrap the callback function call in a TryCatch so that we can call
         // node's FatalException afterwards. This makes it possible to catch
@@ -108,6 +110,7 @@ private:
     Persistent<Function>    m_callback;
     uv_work_t             * m_request;
 	
+    bool                    m_imageProcessed;
 	AnalyzeResult           m_analyzeResult;
 	std::vector<char>       m_imageData;
 };
