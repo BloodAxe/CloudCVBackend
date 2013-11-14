@@ -144,14 +144,19 @@ unsigned char *base64_decode(const char *data,
 
 std::string toDataUri(const cv::Mat& img, const char * imageMimeType)
 {
-    std::vector<unsigned char> buf, encoded;
-    cv::imencode(".png", img, buf);
-    
-    base64_encode(buf, encoded);
-
     std::ostringstream os;
     os << "data:" << imageMimeType << ";base64,";
-    std::copy(encoded.begin(), encoded.end(), std::ostream_iterator<unsigned char>(os));
+
+    if (!img.empty())
+    {
+        std::vector<unsigned char> buf, encoded;
+        cv::imencode(".png", img, buf);
+        
+        base64_encode(buf, encoded);
+
+        std::copy(encoded.begin(), encoded.end(), std::ostream_iterator<unsigned char>(os));
+    }
+    
     return os.str();
 }
 
