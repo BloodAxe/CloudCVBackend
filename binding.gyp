@@ -3,11 +3,11 @@
         'default_configuration': 'Release',
     },
 
-    "targets": [
+    'targets': [
         {
-            "target_name": "cloudcv",
+            'target_name': "cloudcv",
 
-            "sources": [ 
+            'sources': [ 
                 "main.cpp", 
                 
                 "src/node/node_helpers.hpp", 
@@ -51,22 +51,24 @@
                 ['OS=="win"', {
 
                     'configurations': {
-                      'Debug': {
-                        'defines': [ 'DEBUG', '_DEBUG' ],
-                        'msvs_settings': {
-                          'VCCLCompilerTool': {
-                            'RuntimeLibrary': 2, # static debug
-                          },
+
+                        'Debug': {
+                            'defines': [ 'DEBUG', '_DEBUG' ],
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeLibrary': 2, # static debug
+                                },
+                            },
                         },
-                      },
-                      'Release': {
-                        'defines': [ 'NDEBUG' ],
-                        'msvs_settings': {
-                          'VCCLCompilerTool': {
-                            'RuntimeLibrary': 2, # static release
-                          },
-                        },
-                      }
+
+                        'Release': {
+                            'defines': [ 'NDEBUG' ],
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeLibrary': 2, # static release
+                                },
+                            },
+                        }
                     },
 
                     'defines': [
@@ -100,9 +102,52 @@
                         "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/libtiff.lib",
                         "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/zlib.lib"
                     ]
-                }
-                , {
+                }],
 
+                ['OS=="mac"', {
+                
+                    'defines': [
+                        'TARGET_PLATFORM_MAC',
+                    ],
+
+                    'include_dirs': [
+                        '/usr/local/include'
+                    ],
+                    
+                    'libraries': [
+                        "/usr/local/lib/libopencv_contrib.a",
+                        "/usr/local/lib/libopencv_stitching.a",
+                        "/usr/local/lib/libopencv_nonfree.a",
+                        "/usr/local/lib/libopencv_ts.a", 
+                        "/usr/local/lib/libopencv_videostab.a",
+                        "/usr/local/lib/libopencv_gpu.a", 
+                        "/usr/local/lib/libopencv_legacy.a", 
+                        "/usr/local/lib/libopencv_ml.a", 
+                        "/usr/local/lib/libopencv_objdetect.a", 
+                        "/usr/local/lib/libopencv_calib3d.a", 
+                        "/usr/local/lib/libopencv_photo.a", 
+                        "/usr/local/lib/libopencv_video.a", 
+                        "/usr/local/lib/libopencv_features2d.a", 
+                        "/usr/local/lib/libopencv_highgui.a", 
+                        "/usr/local/share/OpenCV/3rdparty/lib/liblibtiff.a", 
+                        "/usr/local/share/OpenCV/3rdparty/lib/liblibpng.a", 
+                        "/usr/local/share/OpenCV/3rdparty/lib/liblibjpeg.a", 
+                        "/usr/local/lib/libopencv_flann.a", 
+                        "/usr/local/lib/libopencv_imgproc.a", 
+                        "/usr/local/lib/libopencv_core.a", 
+                        "/usr/local/share/OpenCV/3rdparty/lib/libzlib.a"
+                    ],
+
+                    'xcode_settings': {
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-g', '-mmacosx-version-min=10.7', '-std=c++11', '-stdlib=libc++', '-O3', '-D__STDC_CONSTANT_MACROS', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE_SOURCE', '-Wall' ],
+                        'OTHER_CPLUSPLUSFLAGS': [ '-g', '-mmacosx-version-min=10.7', '-std=c++11', '-stdlib=libc++', '-O3', '-D__STDC_CONSTANT_MACROS', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE_SOURCE', '-Wall' ]
+                    }
+                }],
+
+                
+                ['OS=="linux"', {
+                
                     'defines': [
                         'TARGET_PLATFORM_LINUX',
                     ],
@@ -126,7 +171,6 @@
                         "/usr/local/lib/libopencv_video.a", 
                         "/usr/local/lib/libopencv_features2d.a", 
                         "/usr/local/lib/libopencv_highgui.a", 
-                        "/usr/local/share/OpenCV/3rdparty/lib/liblibjasper.a", 
                         "/usr/local/share/OpenCV/3rdparty/lib/liblibtiff.a", 
                         "/usr/local/share/OpenCV/3rdparty/lib/liblibpng.a", 
                         "/usr/local/share/OpenCV/3rdparty/lib/liblibjpeg.a", 
@@ -135,11 +179,8 @@
                         "/usr/local/lib/libopencv_core.a", 
                         "/usr/local/share/OpenCV/3rdparty/lib/libzlib.a"
                     ]
-                }],             
-            ],
-
-            
-
+                }]       
+            ]
         }
     ]
 }
