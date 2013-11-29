@@ -40,6 +40,19 @@
 
                 "src/modules/buildInformation/buildInformation.cpp", 
                 "src/modules/buildInformation/buildInformation.hpp", 
+
+                "src/modules/markerDetection/CameraCalibration.cpp",
+                "src/modules/markerDetection/CameraCalibration.hpp",
+                "src/modules/markerDetection/GeometryTypes.cpp",
+                "src/modules/markerDetection/GeometryTypes.hpp",
+                "src/modules/markerDetection/Marker.cpp",
+                "src/modules/markerDetection/Marker.hpp",
+                "src/modules/markerDetection/MarkerDetector.cpp",
+                "src/modules/markerDetection/MarkerDetector.hpp",
+                "src/modules/markerDetection/TinyLA.cpp",
+                "src/modules/markerDetection/TinyLA.hpp",
+                "src/modules/markerDetection/MarkerDetectionBinding.cpp",
+                "src/modules/markerDetection/MarkerDetectionBinding.hpp",
             ],
 
             'include_dirs': [

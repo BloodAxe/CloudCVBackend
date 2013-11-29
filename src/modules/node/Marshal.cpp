@@ -227,3 +227,15 @@ Marshal::NativeResult Marshal::Native(const FaceDetectionResult& value)
 
     return scope.Close(structure);
 }
+
+
+Marshal::NativeResult Marshal::Native(const Marker& value)
+{
+    HandleScope scope;
+    Local<Object> structure = Object::New();
+
+    structure->Set(String::NewSymbol("id"),              Native(value.id));
+    structure->Set(String::NewSymbol("points"),          Native(value.points));
+
+    return scope.Close(structure);
+}

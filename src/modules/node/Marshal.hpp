@@ -4,7 +4,7 @@
 #include "modules/common/Color.hpp"
 #include "modules/analyze/analyze.hpp"
 #include "modules/faceRec/faceRec.hpp"
-
+#include "modules/markerDetection/Marker.hpp"
 #include <node_buffer.h>
 #include <node.h>
 #include <v8.h>
@@ -91,7 +91,7 @@ public:
 	static NativeResult Native(const Distribution& value);
 	static NativeResult Native(const RGBDistribution& value);
 	static NativeResult Native(const rgb8u_color_t& value);
-
+	static NativeResult Native(const Marker& marker);
 
 	static NativeResult Native(const AnalyzeResult& value);
 	static NativeResult Native(const ImageInformation& value);
