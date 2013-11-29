@@ -99,7 +99,6 @@
                         "$(OPENCV_ROOT)/lib/opencv_videostab246.lib",
                         "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/libjpeg.lib",
                         "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/libpng.lib",
-                        "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/libtiff.lib",
                         "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/zlib.lib"
                     ]
                 }],
