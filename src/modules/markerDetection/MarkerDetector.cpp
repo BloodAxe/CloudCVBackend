@@ -14,6 +14,7 @@
 // Standard includes:
 #include <iostream>
 #include <sstream>
+#include <limits>
 
 ////////////////////////////////////////////////////////////////////
 // File includes:
@@ -97,9 +98,9 @@ void MarkerDetector::prepareImage(const cv::Mat& frame, cv::Mat& grayscale) cons
 {
     // Convert to grayscale
     if (frame.channels() == 4)
-        cv::cvtColor(frame, grayscale, CV_BGRA2GRAY);
+        cv::cvtColor(frame, grayscale, cv::COLOR_BGRA2GRAY);
     else if (frame.channels() == 3)
-        cv::cvtColor(frame, grayscale, CV_BGR2GRAY);
+        cv::cvtColor(frame, grayscale, cv::COLOR_BGR2GRAY);
     else if (frame.channels() == 1)
         frame.copyTo(grayscale);
 }
@@ -127,7 +128,7 @@ void MarkerDetector::performThreshold(const cv::Mat& grayscale, cv::Mat& thresho
 void MarkerDetector::findContours(cv::Mat& thresholdImg, ContoursVector& contours, int minContourPointsAllowed) const
 {
     ContoursVector allContours;
-    cv::findContours(thresholdImg, allContours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+    cv::findContours(thresholdImg, allContours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
 
     contours.clear();
     for (size_t i=0; i<allContours.size(); i++)
