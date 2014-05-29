@@ -1,32 +1,27 @@
 {
-    "name": "cloudcv",
-    "version": "1.0.1",
-    "description": "CloudCV backend module",
-    "author": "Eugene Khvedchenya <ekhvedchenya@gmail.com>",
-    "license": "MIT",
-    "main": "./build/Release/cloudcv",
-
-    "scripts": {
-        "preinstall": "node-gyp clean rebuild",
-        "test": "expresso test/*.js"
-    },
-
-    "dependencies" : {
-    },
-
-    "devDependencies": {
-        "expresso": "*",
-        "nan": "*"
-    },
-    
-    "keywords": [
-        "opencv",
-        "computer",
-        "vision"
-    ],
-
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/BloodAxe/CloudCVBackend.git"
-    }
+  "name": "cloudcv",
+  "version": "1.0.1",
+  "description": "CloudCV backend module",
+  "author": "Eugene Khvedchenya <ekhvedchenya@gmail.com>",
+  "license": "MIT",
+  "main": "./build/Release/cloudcv",
+  "scripts": {
+    "preinstall": "node-gyp clean rebuild",
+    "test": "expresso test/*.js"
+  },
+  "dependencies": {
+    "nan": "^1.1.2"
+  },
+  "devDependencies": {
+    "expresso": "*"
+  },
+  "keywords": [
+    "opencv",
+    "computer",
+    "vision"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BloodAxe/CloudCVBackend.git"
+  }
 }
