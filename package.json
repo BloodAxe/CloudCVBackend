@@ -12,11 +12,11 @@
     },
 
     "dependencies" : {
-        "nan": "*"
     },
 
     "devDependencies": {
-        "expresso": "*"
+        "expresso": "*",
+        "nan": "*"
     },
     
     "keywords": [
