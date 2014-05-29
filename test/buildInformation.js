@@ -3,4 +3,5 @@ var cv = require("../build/Release/cloudcv");
 
 exports['test cv.getBuildInformation'] = function() {
     assert.isNotNull(cv.buildInformation());
+    console.log(cv.buildInformation());
 };

@@ -1,4 +1,5 @@
 {
+
     'target_defaults': {
         'default_configuration': 'Release',
     },
@@ -10,17 +11,34 @@
             'sources': [ 
                 "main.cpp", 
                 
+                "src/framework/marshal/marshal.hpp",                
+                "src/framework/marshal/marshal.cpp",
+
+                "src/framework/marshal/stl.hpp",                
+                "src/framework/marshal/stl.cpp",
+                
+                "src/framework/marshal/opencv.hpp",                
+                "src/framework/marshal/opencv.cpp",
+                
+                "src/framework/marshal/primitives.hpp",                
+                "src/framework/marshal/primitives.cpp",
+
+                "src/framework/marshal/node_object_builder.hpp",
+                "src/framework/marshal/node_object_builder.cpp",
+                
+                "src/framework/Image.hpp",                
+                "src/framework/Image.cpp",
+
+                "src/framework/Job.hpp",                
+                "src/framework/Job.cpp",
+
                 "src/node/node_helpers.hpp", 
                 "src/node/node_helpers.cpp",
-
-                "src/modules/node/Marshal.cpp", 
-                "src/modules/node/Marshal.hpp",                 
 
                 "src/modules/common/Numeric.cpp", 
                 "src/modules/common/Numeric.hpp",                 
 
                 "src/modules/common/Color.hpp", 
-                "src/modules/common/Serialization.hpp", 
                 "src/modules/common/ScopedTimer.hpp", 
 
                 "src/modules/common/ImageUtils.hpp", 
@@ -33,30 +51,16 @@
                 "src/modules/analyze/dominantColors.hpp", 
                 "src/modules/analyze/dominantColors.cpp", 
 
-                "src/modules/faceRec/faceRec.cpp", 
-                "src/modules/faceRec/faceRec.hpp", 
-                "src/modules/faceRec/faceRecBinding.hpp", 
-                "src/modules/faceRec/faceRecBinding.cpp", 
-
                 "src/modules/buildInformation/buildInformation.cpp", 
                 "src/modules/buildInformation/buildInformation.hpp", 
 
-                "src/modules/markerDetection/CameraCalibration.cpp",
-                "src/modules/markerDetection/CameraCalibration.hpp",
-                "src/modules/markerDetection/GeometryTypes.cpp",
-                "src/modules/markerDetection/GeometryTypes.hpp",
-                "src/modules/markerDetection/Marker.cpp",
-                "src/modules/markerDetection/Marker.hpp",
-                "src/modules/markerDetection/MarkerDetector.cpp",
-                "src/modules/markerDetection/MarkerDetector.hpp",
-                "src/modules/markerDetection/TinyLA.cpp",
-                "src/modules/markerDetection/TinyLA.hpp",
-                "src/modules/markerDetection/MarkerDetectionBinding.cpp",
-                "src/modules/markerDetection/MarkerDetectionBinding.hpp",
+                "src/modules/cameraCalibration/CameraCalibrationBinding.cpp", 
+                "src/modules/cameraCalibration/CameraCalibrationBinding.hpp", 
             ],
 
             'include_dirs': [
               'src/',
+			  "<!(node -e \"require('nan')\")"
             ],
 
             'conditions': [
@@ -88,31 +92,36 @@
                         'TARGET_PLATFORM_WINDOWS',
                     ],
 
+                    'variables': { 
+                        'opencv_root': '<!(echo %OPENCV_ROOT%)' 
+                    },
+
                     'include_dirs': [
-                        '$(OPENCV_ROOT)/include'
+                        '<(opencv_root)/include'
                     ],
 
                     'libraries': [
-                        "$(OPENCV_ROOT)/lib/opencv_calib3d246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_contrib246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_core246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_features2d246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_flann246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_highgui246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_imgproc246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_legacy246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_ml246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_nonfree246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_objdetect246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_photo246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_stitching246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_superres246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_ts246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_video246.lib",
-                        "$(OPENCV_ROOT)/lib/opencv_videostab246.lib",
-                        "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/libjpeg.lib",
-                        "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/libpng.lib",
-                        "$(OPENCV_ROOT)/share/OpenCV/3rdparty/lib/zlib.lib"
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_calib3d247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_contrib247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_core247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_features2d247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_flann247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_highgui247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_imgproc247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_legacy247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_ml247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_nonfree247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_objdetect247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_photo247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_stitching247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_superres247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_ts247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_video247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/opencv_videostab247.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/libjpeg.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/libtiff.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/libpng.lib",
+                        "<(opencv_root)/x86/vc11/staticlib/zlib.lib"
                     ]
                 }],
 

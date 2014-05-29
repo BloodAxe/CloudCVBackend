@@ -45,66 +45,6 @@ void base64_encode(const std::vector<unsigned char>& data, std::vector<unsigned 
 
 //////////////////////////////////////////////////////////////
 
-ObjectBuilder::ObjectBuilder(NodeObject& obj)
-    : m_object(obj)
-{
-}
-
-ObjectBuilder& ObjectBuilder::Set(const char * name, int value)
-{
-    m_object->Set(String::NewSymbol(name), Int32::New(value)); 
-    return *this;
-}
-
-ObjectBuilder& ObjectBuilder::Set(const char * name, size_t value)
-{
-    m_object->Set(String::NewSymbol(name), Uint32::New(value)); 
-    return *this;
-}
-
-ObjectBuilder& ObjectBuilder::Set(const char * name, float value)
-{ 
-    m_object->Set(String::NewSymbol(name), Number::New(value)); 
-    return *this;
-}
-
-ObjectBuilder& ObjectBuilder::Set(const char * name, double value)
-{
-    m_object->Set(String::NewSymbol(name), Number::New(value));
-    return *this;
-}
-
-ObjectBuilder& ObjectBuilder::Set(const char * name, const char * value)
-{ 
-    m_object->Set(String::NewSymbol(name), String::New(value)); 
-    return *this;
-}
-
-ObjectBuilder& ObjectBuilder::Set(const char * name, const std::string& value)
-{
-    m_object->Set(String::NewSymbol(name), String::New(value.c_str(), value.size()));
-    return *this;
-}
-
-
-
-
-ObjectBuilder& ObjectBuilder::Set(const char * name, const cv::Size& size)
-{
-    HandleScope scope;
-
-    Local<Object> sizeObj = Object::New();
-
-    ObjectBuilder sizeBuilder(sizeObj);
-    sizeBuilder.Set("width",  size.width);
-    sizeBuilder.Set("height", size.height);
-
-    m_object->Set(String::NewSymbol(name), sizeObj);
-    return *this;
-}
-
-//////////////////////////////////////////////////////////////
-
 /*
 unsigned char *base64_decode(const char *data,
                              size_t input_length,
@@ -144,27 +84,33 @@ unsigned char *base64_decode(const char *data,
 
 std::string toDataUri(const cv::Mat& img, const char * imageMimeType)
 {
-    std::ostringstream os;
-    os << "data:" << imageMimeType << ";base64,";
-
-    if (!img.empty())
+    if (img.empty())
     {
-        std::vector<unsigned char> buf, encoded;
-        cv::imencode(".png", img, buf);
-        
-        base64_encode(buf, encoded);
+        return "";
+    }
 
+    std::ostringstream os;
+    std::vector<unsigned char> buf, encoded;
+
+    if (imageMimeType == kImageTypePng)
+    {
+        os << "data:" << imageMimeType << ";base64,";
+        cv::imencode(".png", img, buf);        
+        base64_encode(buf, encoded);
         std::copy(encoded.begin(), encoded.end(), std::ostream_iterator<unsigned char>(os));
+    }
+    else if (imageMimeType == kImageTypeJpeg)
+    {
+        os << "data:" << imageMimeType << ";base64,";
+        cv::imencode(".jpg", img, buf);        
+        base64_encode(buf, encoded);
+        std::copy(encoded.begin(), encoded.end(), std::ostream_iterator<unsigned char>(os));
+    }
+    else
+    {
+        os << "data:unsupported";
     }
     
     return os.str();
 }
 
-std::string humanSize(size_t sizeInBytes)
-{
-    std::ostringstream str;
-
-    str << sizeInBytes;
-
-    return str.str();
-}

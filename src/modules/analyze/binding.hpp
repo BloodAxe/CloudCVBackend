@@ -1,6 +1,9 @@
 #pragma once
 
-#include <node.h>
 #include <v8.h>
+#include <nan.h>
 
-v8::Handle<v8::Value> analyzeImage(const v8::Arguments& args);
+namespace cloudcv 
+{
+	NAN_METHOD(analyzeImage);
+}

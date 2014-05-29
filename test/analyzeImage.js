@@ -5,13 +5,12 @@ var cv = require("../build/Release/cloudcv");
 
 exports['test cv.analyze'] = function() {
 
-	var imageData = fs.readFileSync("test/example.jpg");
+	var imageData = fs.readFileSync("test/opencv-logo.jpg");
 	assert.isNotNull(imageData);
 
-	cv.analyze(imageData, function(result) {
+	cv.analyze(imageData, function(error, result) {
 
-		console.log(result);
 		assert.isNotNull(result);
+        assert.equal(4, result.color.dominantColors.length);
 	});
-
 };

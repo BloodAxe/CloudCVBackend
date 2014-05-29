@@ -28,8 +28,8 @@ struct ColorsInformation
 	cv::Mat					   histogramImage;
 	cv::Mat                    dominantColorsImage;
 
-	size_t                     uniqieColors;
-	size_t                     reducedColors;
+	int                     uniqieColors;
+	int                     reducedColors;
 	std::vector<DominantColor> dominantColors;
 	RGBDistribution            colorDeviation;
 };

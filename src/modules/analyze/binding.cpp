@@ -1,148 +1,165 @@
 #include "modules/analyze/binding.hpp"
 #include "modules/analyze/analyze.hpp"
-#include "modules/node/Marshal.hpp"
 
-#include <node_buffer.h>
+#include <framework/marshal/marshal.hpp>
+#include "framework/Job.hpp"
+
+#include <vector>
 
 using namespace v8;
 using namespace node;
 
-struct ImageAnalyzeTask
-{       
-    ImageAnalyzeTask(Local<Value> imageBuffer, Local<Value> callback)
-        : m_imageProcessed(false)
-    {
-        HandleScope scope;
-        
-        Local<Object> imageBufferObject = Local<Object>::New(imageBuffer->ToObject());
-        m_callback  = Persistent<Function>::New(Handle<Function>::Cast(callback));
+typedef v8::Local<v8::Value> V8Result;
 
-        char * bufferData   = Buffer::Data(imageBufferObject);
-        size_t bufferLength = Buffer::Length(imageBufferObject);
-
-        m_imageData = std::vector<char>(bufferData, bufferData + bufferLength);
-
-        // This creates the work request struct.
-        m_request       = new uv_work_t();
-        m_request->data = this;  
-    }
-
-    virtual ~ImageAnalyzeTask()
-    {
-        m_callback.Dispose();
-        delete m_request;
-    }
-
-    void StartTask()
-    {
-        // Schedule our work request with libuv. Here you can specify the functions
-        // that should be executed in the thread pool and back in the main thread
-        // after the thread pool function completed.
-        int status = uv_queue_work( uv_default_loop(), 
-                                    m_request, 
-                                    &ImageAnalyzeTask::analyzeImageAsyncWork,
-                                    (uv_after_work_cb)ImageAnalyzeTask::analyzeImageAsyncAfter);
-        assert(status == 0);
-    }
-
-protected:
-
-    // This function is executed in another thread at some point after it has been
-    // scheduled. IT MUST NOT USE ANY V8 FUNCTIONALITY. Otherwise your extension
-    // will crash randomly and you'll have a lot of fun debugging.
-    // If you want to use parameters passed into the original call, you have to
-    // convert them to PODs or some other fancy method.
-    virtual void ExecuteNative()
-    {
-        cv::Mat input = cv::imdecode(m_imageData, 1);
-        if (!input.empty())
-        {
-            m_imageProcessed = true;
-            buildFromImage(input, m_analyzeResult);
-        }
-    }
-
-
-
-    // This function is executed in the main V8/JavaScript thread. That means it's
-    // safe to use V8 functions again. Don't forget the HandleScope!
-    virtual void InvokeResultCallback()
-    {
-        HandleScope scope;
-
-        const unsigned argc = 1;
-        Local<Value> argv[argc] = { m_imageProcessed ? Marshal::Native(m_analyzeResult) : Local<Value>::New(Undefined()) };
-
-        // Wrap the callback function call in a TryCatch so that we can call
-        // node's FatalException afterwards. This makes it possible to catch
-        // the exception from JavaScript land using the
-        // process.on('uncaughtException') event.
-        TryCatch try_catch;
-        m_callback->Call(Context::GetCurrent()->Global(), argc, argv);
-        
-        if (try_catch.HasCaught())
-        {
-            node::FatalException(try_catch);
-        }
-    }
-
-private:
-
-    void FinishTask()
-    {
-        InvokeResultCallback();
-    }
-
-    static void analyzeImageAsyncWork(uv_work_t* req)
-    {
-        ImageAnalyzeTask * task = static_cast<ImageAnalyzeTask*>(req->data);
-        task->ExecuteNative();
-    }
-
-    static void analyzeImageAsyncAfter(uv_work_t* req)
-    {
-        ImageAnalyzeTask* task = static_cast<ImageAnalyzeTask*>(req->data);
-        task->FinishTask();
-        delete task;
-    }
-
-private:
-    Persistent<Function>    m_callback;
-    uv_work_t             * m_request;
-	
-    bool                    m_imageProcessed;
-	AnalyzeResult           m_analyzeResult;
-	std::vector<char>       m_imageData;
-};
-
-
-
-
-Handle<Value> analyzeImage(const Arguments& args)
+V8Result MarshalFromNative(const Distribution& d)
 {
-    HandleScope scope;
+	NanScope();
+	Local<Object> structure = NanNew<Object>();
+	NodeObject resultWrapper(structure);
 
-    if (args.Length() != 2)
-    {
-        return ThrowException(Exception::TypeError(String::New("Invalid number of arguments")));        
-    }
+	resultWrapper["average"] = d.average;
+	resultWrapper["entropy"] = d.entropy;
+	resultWrapper["max"] = d.max;
+	resultWrapper["min"] = d.min;
+	resultWrapper["standardDeviation"] = d.standardDeviation;
 
-    if (!args[0]->IsObject())
-    {
-        return ThrowException(Exception::TypeError(String::New("First argument should be a Buffer")));        
-    }
+	NanReturnValue(structure);
+}
 
-    if (!args[1]->IsFunction())
-    {
-        return ThrowException(Exception::TypeError(String::New("Second argument must be a callback function")));
-    }
+V8Result MarshalFromNative(const DominantColor& d)
+{
+	NanScope();
+	Local<Object> structure = NanNew<Object>();
+	NodeObject resultWrapper(structure);
 
-    // The task holds our custom status information for this asynchronous call,
-    // like the callback function we want to call when returning to the main
-    // thread and the status information.
-    
-    ImageAnalyzeTask* task = new ImageAnalyzeTask(args[0], args[1]);
-    task->StartTask();
+	resultWrapper["average"] = d.color;
+	resultWrapper["entropy"] = d.error;
+	resultWrapper["max"] = d.interclassVariance;
+	resultWrapper["min"] = d.totalPixels;
 
-    return Undefined();
+	NanReturnValue(structure);
+}
+
+V8Result MarshalFromNative(const RGBDistribution& d)
+{
+	NanScope();
+	Local<Object> structure = NanNew<Object>();
+	NodeObject resultWrapper(structure);
+
+	resultWrapper["b"] = d.b;
+	resultWrapper["g"] = d.g;
+	resultWrapper["r"] = d.r;
+
+	NanReturnValue(structure);
+}
+
+
+
+
+
+namespace cloudcv
+{
+	class ImageAnalyzeTask : public Job
+	{
+	public:
+
+		ImageAnalyzeTask(NanCallback * callback, const cv::Mat& inputImage)
+			: Job(callback)
+			, m_source(inputImage)
+		{
+		}
+
+	protected:
+
+		// This function is executed in another thread at some point after it has been
+		// scheduled. IT MUST NOT USE ANY V8 FUNCTIONALITY. Otherwise your extension
+		// will crash randomly and you'll have a lot of fun debugging.
+		// If you want to use parameters passed into the original call, you have to
+		// convert them to PODs or some other fancy method.
+		virtual void Execute()
+		{
+			buildFromImage(m_source, m_analyzeResult);
+		}
+
+		// This function is executed in the main V8/JavaScript thread. That means it's
+		// safe to use V8 functions again. Don't forget the HandleScope!
+		virtual Local<Value> CreateCallbackResult()
+		{
+			NanScope();
+			Local<Object> res = NanNew<Object>();
+
+			NodeObject resultWrapper(res);
+
+			resultWrapper["common"]["frameSize"]          = m_analyzeResult.common.frameSize;
+			resultWrapper["common"]["aspectRatio"]        = m_analyzeResult.common.aspectRatio;
+			resultWrapper["common"]["hasColor"]           = m_analyzeResult.common.hasColor;
+			resultWrapper["common"]["sourceImage"]        = m_analyzeResult.common.sourceImage;
+			resultWrapper["common"]["grayscaleImage"]     = m_analyzeResult.common.grayscaleImage;
+
+			resultWrapper["grayscale"]["intensity"]       = m_analyzeResult.grayscale.intensity;
+			resultWrapper["grayscale"]["rmsContrast"]     = m_analyzeResult.grayscale.rmsContrast;
+			resultWrapper["grayscale"]["histogramImage"]  = m_analyzeResult.grayscale.histogramImage;
+
+			resultWrapper["color"]["colorDeviation"]      = m_analyzeResult.color.colorDeviation;
+			resultWrapper["color"]["uniqieColors"]        = m_analyzeResult.color.uniqieColors;
+			resultWrapper["color"]["reducedColors"]       = m_analyzeResult.color.reducedColors;
+			resultWrapper["color"]["dominantColors"]      = m_analyzeResult.color.dominantColors;
+			resultWrapper["color"]["dominantColorsImage"] = m_analyzeResult.color.dominantColorsImage;
+			resultWrapper["color"]["histogramImage"]      = m_analyzeResult.color.histogramImage;
+
+			resultWrapper["edges"]["cannyImage"]          = m_analyzeResult.edges.cannyImage;
+			resultWrapper["edges"]["cannyLowerThreshold"] = m_analyzeResult.edges.cannyLowerThreshold;
+			resultWrapper["edges"]["cannyUpperThreshold"] = m_analyzeResult.edges.cannyUpperThreshold;
+
+			resultWrapper["profiling"] = m_analyzeResult.profiling;
+
+			NanReturnValue(res);
+		}
+
+	private:
+		cv::Mat                 m_source;
+		AnalyzeResult           m_analyzeResult;
+	};
+
+
+
+	NAN_METHOD(analyzeImage)
+	{
+		NanScope();
+
+		if (args.Length() != 2)
+		{
+			return NanThrowError("Invalid number of arguments");
+		}
+
+		if (!args[0]->IsObject()) 
+		{
+			return NanThrowTypeError("First argument should be a Buffer");
+		}
+
+		if (!args[1]->IsFunction())
+		{
+			return NanThrowTypeError("Second argument must be a callback function");
+		}
+
+		NanCallback *callback = new NanCallback(args[1].As<Function>());
+
+		cv::Mat inputImage;
+
+		if (!MarshalToNativeImage(args[0], inputImage, 1))
+		{
+			v8::Local<v8::Value> argv[] = {
+				v8::Exception::Error(String::New("Cannot open image"))
+			};
+			callback->Call(1, argv);
+		}
+		else
+		{
+			NanAsyncQueueWorker(new ImageAnalyzeTask(callback, inputImage));
+		}
+
+		NanReturnUndefined();
+	}
+
+
 }

@@ -7,8 +7,8 @@
 
 struct Color
 {
-	size_t hash;
-	size_t count;
+	int hash;
+	int count;
 
 	Color() : hash(0), count(0) {}
 	Color(int h, int c) : hash(h), count(c) {}
@@ -25,7 +25,7 @@ struct Color
 struct DominantColor
 {
 	cv::Vec3b color;
-	size_t    totalPixels;
+	int       totalPixels;
 
 	float     interclassVariance;
 	float     error;
@@ -44,19 +44,19 @@ public:
 
 	RGBDistribution getColorDeviation() const;
 
-	size_t getUniqueColors() const;
-	size_t getRedicedColors() const;
+	int getUniqueColors() const;
+	int getRedicedColors() const;
 
 protected:
-	typedef std::set<size_t> ColorsSet;
+	typedef std::set<int> ColorsSet;
 
 	bool findLargestColorSet(int similarityTolerance, int minPixelsInSet, const std::set<Color>& input, std::set<Color>& colorsSet) const;
 	DominantColor computeFinalColor(const std::set<Color>& colorsSet) const;
 
 private:
 	std::vector<unsigned char> rVec, gVec, bVec;
-	std::map<size_t, size_t> fullColorsTable;
-	std::map<size_t, size_t> quantizedColorsTable;
+	std::map<int, int> fullColorsTable;
+	std::map<int, int> quantizedColorsTable;
 
 };
 

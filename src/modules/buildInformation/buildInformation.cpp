@@ -1,14 +1,11 @@
 #include "buildInformation.hpp"
-#include "../../node/node_helpers.hpp"
+#include <framework/marshal/marshal.hpp>
 
-using namespace v8;
-using namespace node;
-
-Handle<Value> buildInformation(const Arguments& args)
+namespace cloudcv 
 {
-    HandleScope scope;
-
-    std::string resultString = cv::getBuildInformation();
-
-    return String::New(resultString.c_str());
+	NAN_METHOD(buildInformation)
+    {
+		NanScope();
+		NanReturnValue(MarshalFromNative(cv::getBuildInformation()));
+    }
 }

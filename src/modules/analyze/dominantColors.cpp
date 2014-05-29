@@ -1,7 +1,7 @@
 #include "dominantColors.hpp"
 
 template<int N>
-inline size_t quantize(size_t val)
+inline int quantize(int val)
 {
 	val = val >> N;
 	val = val << N;
@@ -54,12 +54,12 @@ void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)
 		{
 			cv::Vec3b clr = bgrImage(row, col);
 
-			size_t b = clr[0];
-			size_t g = clr[1];
-			size_t r = clr[2];
+			int b = clr[0];
+			int g = clr[1];
+			int r = clr[2];
 
-			size_t hash1 = r + (b << 8) + (g << 16);
-			size_t hash2 = quantize<2>(r) + (quantize<2>(g) << 8) + (quantize<2>(b) << 16);
+			int hash1 = r + (b << 8) + (g << 16);
+			int hash2 = quantize<2>(r) + (quantize<2>(g) << 8) + (quantize<2>(b) << 16);
 
 			fullColorsTable[hash1]++;
 			quantizedColorsTable[hash2]++;
@@ -72,7 +72,7 @@ void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)
 
 	std::set<Color> colors;
 
-	for (std::map<size_t, size_t>::const_iterator it = quantizedColorsTable.begin(); it != quantizedColorsTable.end(); ++it)
+	for (std::map<int, int>::const_iterator it = quantizedColorsTable.begin(); it != quantizedColorsTable.end(); ++it)
 	{
 		colors.insert(Color(it->first, it->second));
 	}
@@ -181,7 +181,7 @@ bool DominantColorsExtractor::findLargestColorSet(int similarityTolerance, int m
 	typedef std::set<Color>::const_iterator It;
 
 	It largestColorIt = input.begin();
-	size_t largestCount = largestColorIt->count;
+	int largestCount = largestColorIt->count;
 
 	for (It it = input.begin(); it != input.end(); it++)
 	{
@@ -222,12 +222,12 @@ RGBDistribution DominantColorsExtractor::getColorDeviation() const
 	return cd;
 }
 
-size_t DominantColorsExtractor::getUniqueColors() const
+int DominantColorsExtractor::getUniqueColors() const
 {
 	return fullColorsTable.size();
 }
 
-size_t DominantColorsExtractor::getRedicedColors() const
+int DominantColorsExtractor::getRedicedColors() const
 {
 	return quantizedColorsTable.size();
 }

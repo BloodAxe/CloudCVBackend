@@ -88,7 +88,7 @@ void drawHistogram(cv::Mat src, cv::Mat& histImage)
 
 cv::Size aspectRatio(const cv::Size& frameSize)
 {
-    size_t d = gcd(frameSize.width, frameSize.height);
+    int d = gcd(frameSize.width, frameSize.height);
     return cv::Size(frameSize.width / d, frameSize.height/ d);
 }
 
