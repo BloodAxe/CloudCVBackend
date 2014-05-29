@@ -8,7 +8,11 @@
 
     "scripts": {
         "preinstall": "node-gyp clean rebuild",
-        "test": "expresso test/*"
+        "test": "expresso test/*.js"
+    },
+
+    "dependencies" : {
+        "nan": "*"
     },
 
     "devDependencies": {
