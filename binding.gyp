@@ -2,6 +2,7 @@
 
     'target_defaults': {
         'default_configuration': 'Release',
+
     },
 
     'targets': [
@@ -92,10 +93,6 @@
                         'TARGET_PLATFORM_WINDOWS',
                     ],
 
-                    'variables': { 
-                        'opencv_root': '<!(echo %OPENCV_ROOT%)' 
-                    },
-
                     'include_dirs': [
                         '<(opencv_root)/include'
                     ],
@@ -131,32 +128,41 @@
                         'TARGET_PLATFORM_MAC',
                     ],
 
+                    'variables': { 
+                        'opencv_root':          '<!(echo $OPENCV_ROOT)',
+                        'opencv_libs':          '<!(echo $OPENCV_ROOT)/lib',
+                        'opencv_3rdparty_libs': '<!(echo $OPENCV_ROOT)/share/OpenCV/3rdparty/lib',
+                    },
+
                     'include_dirs': [
-                        '/usr/local/include'
+                        '<(opencv_root)/include'
                     ],
                     
                     'libraries': [
-                        "/usr/local/lib/libopencv_contrib.a",
-                        "/usr/local/lib/libopencv_stitching.a",
-                        "/usr/local/lib/libopencv_nonfree.a",
-                        "/usr/local/lib/libopencv_ts.a", 
-                        "/usr/local/lib/libopencv_videostab.a",
-                        "/usr/local/lib/libopencv_gpu.a", 
-                        "/usr/local/lib/libopencv_legacy.a", 
-                        "/usr/local/lib/libopencv_ml.a", 
-                        "/usr/local/lib/libopencv_objdetect.a", 
-                        "/usr/local/lib/libopencv_calib3d.a", 
-                        "/usr/local/lib/libopencv_photo.a", 
-                        "/usr/local/lib/libopencv_video.a", 
-                        "/usr/local/lib/libopencv_features2d.a", 
-                        "/usr/local/lib/libopencv_highgui.a", 
-                        "/usr/local/share/OpenCV/3rdparty/lib/liblibtiff.a", 
-                        "/usr/local/share/OpenCV/3rdparty/lib/liblibpng.a", 
-                        "/usr/local/share/OpenCV/3rdparty/lib/liblibjpeg.a", 
-                        "/usr/local/lib/libopencv_flann.a", 
-                        "/usr/local/lib/libopencv_imgproc.a", 
-                        "/usr/local/lib/libopencv_core.a", 
-                        "/usr/local/share/OpenCV/3rdparty/lib/libzlib.a"
+                        "<(opencv_libs)/libopencv_calib3d.a",
+                        "<(opencv_libs)/libopencv_contrib.a",
+                        "<(opencv_libs)/libopencv_core.a",
+                        "<(opencv_libs)/libopencv_features2d.a",
+                        "<(opencv_libs)/libopencv_flann.a",
+                        "<(opencv_libs)/libopencv_highgui.a",
+                        "<(opencv_libs)/libopencv_imgproc.a",
+                        "<(opencv_libs)/libopencv_legacy.a",
+                        "<(opencv_libs)/libopencv_ml.a",
+                        "<(opencv_libs)/libopencv_nonfree.a",
+                        "<(opencv_libs)/libopencv_objdetect.a",
+                        "<(opencv_libs)/libopencv_optim.a",
+                        "<(opencv_libs)/libopencv_photo.a",
+                        "<(opencv_libs)/libopencv_shape.a",
+                        "<(opencv_libs)/libopencv_softcascade.a",
+                        "<(opencv_libs)/libopencv_stitching.a",
+                        "<(opencv_libs)/libopencv_superres.a",
+                        "<(opencv_libs)/libopencv_ts.a",
+                        "<(opencv_libs)/libopencv_video.a",
+                        "<(opencv_libs)/libopencv_videostab.a",
+
+                        "<(opencv_3rdparty_libs)/liblibpng.a", 
+                        "<(opencv_3rdparty_libs)/liblibjpeg.a", 
+                        "<(opencv_3rdparty_libs)/libzlib.a"
                     ],
 
                     'xcode_settings': {
