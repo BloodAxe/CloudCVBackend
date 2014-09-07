@@ -35,7 +35,10 @@
 
                 "src/node/node_helpers.hpp", 
                 "src/node/node_helpers.cpp",
-
+                    
+                "src/framework/NanCheck.hpp",
+                "src/framework/NanCheck.cpp",
+                
                 "src/modules/common/Numeric.cpp", 
                 "src/modules/common/Numeric.hpp",                 
 
