@@ -119,7 +119,7 @@ V8Result MarshalFromNative(const cv::Mat& value, OpenCVMatMarshalType type)
 }
 
 
-bool MarshalToNativeImage(v8::Local<v8::Value> imageBuffer, cv::Mat& frame, int flags)
+bool MarshalToNativeImage(V8Result imageBuffer, cv::Mat& frame, int flags)
 {
 	char * bufferData = node::Buffer::Data(imageBuffer);
 	size_t bufferLength = node::Buffer::Length(imageBuffer);
@@ -132,8 +132,8 @@ bool MarshalToNativeImage(v8::Local<v8::Value> imageBuffer, cv::Mat& frame, int 
 
 bool MarshalToNative(V8Result obj, cv::Point2f& value)
 {
-    value.x = obj.As<v8::Object>()->Get(String::NewSymbol("x"))->NumberValue();
-    value.y = obj.As<v8::Object>()->Get(String::NewSymbol("y"))->NumberValue();
+    value.x = static_cast<float>(obj.As<v8::Object>()->Get(String::NewSymbol("x"))->NumberValue());
+    value.y = static_cast<float>(obj.As<v8::Object>()->Get(String::NewSymbol("y"))->NumberValue());
 
     return true;
 }

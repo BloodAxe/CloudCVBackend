@@ -2,6 +2,7 @@
 #include "modules/analyze/analyze.hpp"
 
 #include <framework/marshal/marshal.hpp>
+#include <framework/NanCheck.hpp>
 #include "framework/Job.hpp"
 
 #include <vector>
@@ -9,157 +10,152 @@
 using namespace v8;
 using namespace node;
 
-typedef v8::Local<v8::Value> V8Result;
+namespace {
+    V8Result MarshalFromNative(const cloudcv::Distribution& d)
+    {
+        NanScope();
+        Local<Object> structure = NanNew<Object>();
+        NodeObject resultWrapper(structure);
 
-V8Result MarshalFromNative(const Distribution& d)
-{
-	NanScope();
-	Local<Object> structure = NanNew<Object>();
-	NodeObject resultWrapper(structure);
+        resultWrapper["average"] = d.average;
+        resultWrapper["entropy"] = d.entropy;
+        resultWrapper["max"] = d.max;
+        resultWrapper["min"] = d.min;
+        resultWrapper["standardDeviation"] = d.standardDeviation;
 
-	resultWrapper["average"] = d.average;
-	resultWrapper["entropy"] = d.entropy;
-	resultWrapper["max"] = d.max;
-	resultWrapper["min"] = d.min;
-	resultWrapper["standardDeviation"] = d.standardDeviation;
+        NanReturnValue(structure);
+    }
 
-	NanReturnValue(structure);
+    V8Result MarshalFromNative(const cloudcv::DominantColor& d)
+    {
+        NanScope();
+        Local<Object> structure = NanNew<Object>();
+        NodeObject resultWrapper(structure);
+
+        resultWrapper["average"] = d.color;
+        resultWrapper["entropy"] = d.error;
+        resultWrapper["max"] = d.interclassVariance;
+        resultWrapper["min"] = d.totalPixels;
+
+        NanReturnValue(structure);
+    }
+
+    V8Result MarshalFromNative(const cloudcv::RGBDistribution& d)
+    {
+        NanScope();
+        Local<Object> structure = NanNew<Object>();
+        NodeObject resultWrapper(structure);
+
+        resultWrapper["b"] = d.b;
+        resultWrapper["g"] = d.g;
+        resultWrapper["r"] = d.r;
+
+        NanReturnValue(structure);
+    }
 }
-
-V8Result MarshalFromNative(const DominantColor& d)
-{
-	NanScope();
-	Local<Object> structure = NanNew<Object>();
-	NodeObject resultWrapper(structure);
-
-	resultWrapper["average"] = d.color;
-	resultWrapper["entropy"] = d.error;
-	resultWrapper["max"] = d.interclassVariance;
-	resultWrapper["min"] = d.totalPixels;
-
-	NanReturnValue(structure);
-}
-
-V8Result MarshalFromNative(const RGBDistribution& d)
-{
-	NanScope();
-	Local<Object> structure = NanNew<Object>();
-	NodeObject resultWrapper(structure);
-
-	resultWrapper["b"] = d.b;
-	resultWrapper["g"] = d.g;
-	resultWrapper["r"] = d.r;
-
-	NanReturnValue(structure);
-}
-
-
-
-
 
 namespace cloudcv
 {
-	class ImageAnalyzeTask : public Job
-	{
-	public:
 
-		ImageAnalyzeTask(NanCallback * callback, const cv::Mat& inputImage)
-			: Job(callback)
-			, m_source(inputImage)
-		{
-		}
+    class ImageAnalyzeTask : public Job
+    {
+    public:
 
-	protected:
+        ImageAnalyzeTask(Local<Object> imageBuffer, NanCallback * callback)
+            : Job(callback)
+        {
+            mImageBuffer = Persistent<Object>::New(imageBuffer);
 
-		// This function is executed in another thread at some point after it has been
-		// scheduled. IT MUST NOT USE ANY V8 FUNCTIONALITY. Otherwise your extension
-		// will crash randomly and you'll have a lot of fun debugging.
-		// If you want to use parameters passed into the original call, you have to
-		// convert them to PODs or some other fancy method.
-		virtual void Execute()
-		{
-			buildFromImage(m_source, m_analyzeResult);
-		}
+            mImageData = Buffer::Data(imageBuffer);
+            mImageDataLen = Buffer::Length(imageBuffer);
+        }
 
-		// This function is executed in the main V8/JavaScript thread. That means it's
-		// safe to use V8 functions again. Don't forget the HandleScope!
-		virtual Local<Value> CreateCallbackResult()
-		{
-			NanScope();
-			Local<Object> res = NanNew<Object>();
+        virtual ~ImageAnalyzeTask()
+        {
+            if (!mImageBuffer.IsEmpty())
+            {
+                mImageBuffer.Dispose();
+                mImageBuffer.Clear();
+            }
+        }
 
-			NodeObject resultWrapper(res);
+    protected:
 
-			resultWrapper["common"]["frameSize"]          = m_analyzeResult.common.frameSize;
-			resultWrapper["common"]["aspectRatio"]        = m_analyzeResult.common.aspectRatio;
-			resultWrapper["common"]["hasColor"]           = m_analyzeResult.common.hasColor;
-			resultWrapper["common"]["sourceImage"]        = m_analyzeResult.common.sourceImage;
-			resultWrapper["common"]["grayscaleImage"]     = m_analyzeResult.common.grayscaleImage;
+        // This function is executed in another thread at some point after it has been
+        // scheduled. IT MUST NOT USE ANY V8 FUNCTIONALITY. Otherwise your extension
+        // will crash randomly and you'll have a lot of fun debugging.
+        // If you want to use parameters passed into the original call, you have to
+        // convert them to PODs or some other fancy method.
+        virtual void ExecuteNativeCode()
+        {
+            m_source = cv::imdecode(cv::_InputArray(mImageData, mImageDataLen), cv::IMREAD_COLOR);
 
-			resultWrapper["grayscale"]["intensity"]       = m_analyzeResult.grayscale.intensity;
-			resultWrapper["grayscale"]["rmsContrast"]     = m_analyzeResult.grayscale.rmsContrast;
-			resultWrapper["grayscale"]["histogramImage"]  = m_analyzeResult.grayscale.histogramImage;
+            if (m_source.empty())
+            {
+                SetErrorMessage("Cannot decode image");
+                return;
+            }
 
-			resultWrapper["color"]["colorDeviation"]      = m_analyzeResult.color.colorDeviation;
-			resultWrapper["color"]["uniqieColors"]        = m_analyzeResult.color.uniqieColors;
-			resultWrapper["color"]["reducedColors"]       = m_analyzeResult.color.reducedColors;
-			resultWrapper["color"]["dominantColors"]      = m_analyzeResult.color.dominantColors;
-			resultWrapper["color"]["dominantColorsImage"] = m_analyzeResult.color.dominantColorsImage;
-			resultWrapper["color"]["histogramImage"]      = m_analyzeResult.color.histogramImage;
+            buildFromImage(m_source, m_analyzeResult);
+        }
 
-			resultWrapper["edges"]["cannyImage"]          = m_analyzeResult.edges.cannyImage;
-			resultWrapper["edges"]["cannyLowerThreshold"] = m_analyzeResult.edges.cannyLowerThreshold;
-			resultWrapper["edges"]["cannyUpperThreshold"] = m_analyzeResult.edges.cannyUpperThreshold;
+        // This function is executed in the main V8/JavaScript thread. That means it's
+        // safe to use V8 functions again. Don't forget the HandleScope!
+        virtual Local<Value> CreateCallbackResult()
+        {
+            NanScope();
 
-			resultWrapper["profiling"] = m_analyzeResult.profiling;
+            Local<Object> res = NanNew<Object>();
 
-			NanReturnValue(res);
-		}
+            NodeObject resultWrapper(res);
 
-	private:
-		cv::Mat                 m_source;
-		AnalyzeResult           m_analyzeResult;
-	};
+            resultWrapper["aspectRatio"] = m_analyzeResult.aspectRatio;
+            resultWrapper["colorDeviation"] = m_analyzeResult.colorDeviation;
+            resultWrapper["dominantColors"] = m_analyzeResult.dominantColors;
+            resultWrapper["frameSize"] = m_analyzeResult.frameSize;
+            resultWrapper["histogram"] = m_analyzeResult.histogram;
+            resultWrapper["intensity"] = m_analyzeResult.intensity;
+            resultWrapper["reducedColors"] = m_analyzeResult.reducedColors;
+            resultWrapper["rmsContrast"] = m_analyzeResult.rmsContrast;
+            resultWrapper["uniqieColors"] = m_analyzeResult.uniqieColors;
 
+            NanReturnValue(res);
+        }
 
+    private:
 
-	NAN_METHOD(analyzeImage)
-	{
-		NanScope();
+        Persistent<Object>	 	 mImageBuffer;
+        char                   * mImageData;
+        int                      mImageDataLen;
 
-		if (args.Length() != 2)
-		{
-			return NanThrowError("Invalid number of arguments");
-		}
+        cv::Mat                 m_source;
+        AnalyzeResult           m_analyzeResult;
+    };
 
-		if (!args[0]->IsObject()) 
-		{
-			return NanThrowTypeError("First argument should be a Buffer");
-		}
+    NAN_METHOD(analyzeImage)
+    {
+        NanScope();
 
-		if (!args[1]->IsFunction())
-		{
-			return NanThrowTypeError("Second argument must be a callback function");
-		}
+        try
+        {
+            Local<Object> imageBuffer;
+            Local<Function> imageCallback;
 
-		NanCallback *callback = new NanCallback(args[1].As<Function>());
+            if (NanCheck(args)
+                .ArgumentsCount(2)
+                .Argument(0).IsBuffer().Bind(imageBuffer)
+                .Argument(1).IsFunction().Bind(imageCallback))
+            {
+                NanCallback *callback = new NanCallback(imageCallback);
+                NanAsyncQueueWorker(new ImageAnalyzeTask(imageBuffer, callback));
+                NanReturnValue(NanTrue());
+            }
 
-		cv::Mat inputImage;
-
-		if (!MarshalToNativeImage(args[0], inputImage, 1))
-		{
-			v8::Local<v8::Value> argv[] = {
-				v8::Exception::Error(String::New("Cannot open image"))
-			};
-			callback->Call(1, argv);
-		}
-		else
-		{
-			NanAsyncQueueWorker(new ImageAnalyzeTask(callback, inputImage));
-		}
-
-		NanReturnUndefined();
-	}
-
-
+            NanReturnValue(NanFalse());
+        }
+        catch (ArgumentMismatchException exc)
+        {
+            return NanThrowTypeError(exc.what());
+        }
+    }
 }

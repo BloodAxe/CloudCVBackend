@@ -2,29 +2,40 @@
 
 #include <framework/marshal/marshal.hpp>
 #include <framework/Job.hpp>
+#include <framework/NanCheck.hpp>
 #include <node/node_helpers.hpp>
 
 using namespace v8;
 using namespace node;
 
 namespace cloudcv
-{    
+{
     enum PatternType {
         CHESSBOARD = 0,
         CIRCLES_GRID = 1,
-        ASYMMETRIC_CIRCLES_GRID = 2
+        ASCIRCLES_GRID = 2
     };
 
     class DetectPatternTask : public Job
-    {    
-    public:   
-        DetectPatternTask(NanCallback * callback, int width, int height, PatternType type, cv::Mat image, bool returnImage)
-			: Job(callback)
+    {
+    public:
+        DetectPatternTask(Local<Object> imageBuffer, cv::Size patternSize, PatternType type, NanCallback * callback)
+            : Job(callback)
             , m_pattern(type)
-            , m_patternSize(width, height)
-            , m_image(image)
+            , m_patternSize(patternSize)
             , m_patternfound(false)
         {
+            mImageBuffer = Persistent<Object>::New(imageBuffer);
+            mImageData = Buffer::Data(imageBuffer);
+            mImageDataLen = Buffer::Length(imageBuffer);
+        }
+
+        virtual ~DetectPatternTask()
+        {
+            if (!mImageBuffer.IsEmpty())
+            {
+                mImageBuffer.Dispose();
+            }
         }
 
     protected:
@@ -34,99 +45,104 @@ namespace cloudcv
         // will crash randomly and you'll have a lot of fun debugging.
         // If you want to use parameters passed into the original call, you have to
         // convert them to PODs or some other fancy method.
-        virtual void Execute()
+        void ExecuteNativeCode()
         {
             m_patternfound = false;
 
-            switch(m_pattern)
+            cv::Mat frame = cv::imdecode(cv::_InputArray(mImageData, mImageDataLen), cv::IMREAD_GRAYSCALE);
+            if (frame.empty())
             {
-                case CHESSBOARD:
-                {
-                    const int flags = cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ADAPTIVE_THRESH;
-                    m_patternfound = cv::findChessboardCorners(m_image, m_patternSize, m_corners2d, flags);
-
-                    if (m_patternfound)
-                    {
-                        cv::Mat gray;
-                        cv::cvtColor(m_image, gray, cv::COLOR_BGR2GRAY);
-
-                        const cv::TermCriteria tc = cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1);
-                        cv::cornerSubPix(gray, m_corners2d, cv::Size(11, 11), cv::Size(-1, -1), tc);
-                    }
-
-                };
-                break;
-                
-                case CIRCLES_GRID:
-                {
-                    const int flags = cv::CALIB_CB_SYMMETRIC_GRID;
-                    //cv::SimpleBlobDetector::Params params;
-                    //params.filterByColor = true;
-                    //params.blobColor = 0;
-                    //params.filterByArea = false;
-                    //params.filterByInertia = false;
-
-                    //cv::Ptr<cv::FeatureDetector> blobDetector = new cv::SimpleBlobDetector(params);
-                    m_patternfound = cv::findCirclesGrid(m_image, m_patternSize, m_corners2d, flags);
-                };
-                break;
-                
-                case ASYMMETRIC_CIRCLES_GRID:
-                {
-                    std::cout << "ASYMMETRIC_CIRCLES_GRID " << m_patternSize << std::endl;
-
-                    cv::Mat gray;
-                    cv::cvtColor(m_image, gray, cv::COLOR_BGR2GRAY);
-                    //cv::imwrite("Gray.png", gray);
-
-                    const int flags = cv::CALIB_CB_ASYMMETRIC_GRID;
-                    //cv::SimpleBlobDetector::Params params;
-                    //params.filterByColor = true;
-                    //params.blobColor = 0;
-                    //params.filterByArea = false;
-                    //params.maxArea = 10e4;
-
-                    //cv::Ptr<cv::FeatureDetector> blobDetector = new cv::SimpleBlobDetector(params);
-                    m_patternfound = cv::findCirclesGrid(gray, m_patternSize, m_corners2d, flags );
-                    //m_patternfound = cv::findCirclesGrid(m_image, m_patternSize, m_corners2d, flags, blobDetector);
-                };
-                break;
-                
-                default:
-                    std::cerr << "Unsupported pattern type value " << m_pattern << std::endl;
-                    break;
-            };
-
-            if (m_returnImage) 
-            {
-                cv::drawChessboardCorners(m_image, m_patternSize, cv::Mat(m_corners2d), m_patternfound);
+                SetErrorMessage("Cannot decode input image");
+                return;
             }
+
+            switch (m_pattern)
+            {
+            case CHESSBOARD:
+            {
+                               const int flags = cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ADAPTIVE_THRESH;
+                               m_patternfound = cv::findChessboardCorners(frame, m_patternSize, m_corners2d, flags);
+
+                               if (m_patternfound)
+                               {
+                                   const cv::TermCriteria tc = cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1);
+                                   cv::cornerSubPix(frame, m_corners2d, cv::Size(11, 11), cv::Size(-1, -1), tc);
+                               }
+
+            };
+                break;
+
+            case CIRCLES_GRID:
+            {
+                                 const int flags = cv::CALIB_CB_SYMMETRIC_GRID;
+                                 //cv::SimpleBlobDetector::Params params;
+                                 //params.filterByColor = true;
+                                 //params.blobColor = 0;
+                                 //params.filterByArea = false;
+                                 //params.filterByInertia = false;
+
+                                 //cv::Ptr<cv::FeatureDetector> blobDetector = new cv::SimpleBlobDetector(params);
+                                 m_patternfound = cv::findCirclesGrid(frame, m_patternSize, m_corners2d, flags);
+            };
+                break;
+
+            case ASCIRCLES_GRID:
+            {
+                                            std::cout << "ASYMMETRIC_CIRCLES_GRID " << m_patternSize << std::endl;
+
+                                            const int flags = cv::CALIB_CB_ASYMMETRIC_GRID;
+                                            //cv::SimpleBlobDetector::Params params;
+                                            //params.filterByColor = true;
+                                            //params.blobColor = 0;
+                                            //params.filterByArea = false;
+                                            //params.maxArea = 10e4;
+
+                                            //cv::Ptr<cv::FeatureDetector> blobDetector = new cv::SimpleBlobDetector(params);
+                                            m_patternfound = cv::findCirclesGrid(frame, m_patternSize, m_corners2d, flags);
+                                            //m_patternfound = cv::findCirclesGrid(m_image, m_patternSize, m_corners2d, flags, blobDetector);
+            };
+                break;
+
+            default:
+                std::cerr << "Unsupported pattern type value " << m_pattern << std::endl;
+                break;
+            };
         }
 
-		virtual Local<Value> CreateCallbackResult()
+        virtual Local<Value> CreateCallbackResult()
         {
-			NanScope();
+            NanScope();
             Local<Object> res = NanNew<Object>(); //(Object::New());
-			
-			NodeObject resultWrapper(res);
-			resultWrapper["corners"]      = m_corners2d;
+
+            NodeObject resultWrapper(res);
             resultWrapper["patternFound"] = m_patternfound;
-            if (m_returnImage) 
+
+            if (m_patternfound)
             {
-                resultWrapper["image"]  = toDataUri(m_image, kImageTypeJpeg);                
+                resultWrapper["corners"] = m_corners2d;
             }
 
-			NanReturnValue(res);
+            /*
+            if (m_returnImage)
+            {
+            resultWrapper["image"] = toDataUri(m_image, kImageTypeJpeg);
+            }*/
+
+            NanReturnValue(res);
         }
 
     private:
         PatternType              m_pattern;
         cv::Size                 m_patternSize;
+        bool                     m_patternfound;
+
         bool                     m_returnImage;
 
-        cv::Mat                  m_image;
-		std::vector<cv::Point2f> m_corners2d;
-        bool                     m_patternfound;
+        Persistent<Object>	 	 mImageBuffer;
+        char                   * mImageData;
+        int                      mImageDataLen;
+
+        std::vector<cv::Point2f> m_corners2d;
     };
 
     class ComputeIntrinsicParametersTask : public Job
@@ -149,53 +165,53 @@ namespace cloudcv
 
     protected:
 
-        virtual void Execute()
+        virtual void ExecuteNativeCode()
         {
             PatternType patternType = m_pattern;
-            float squareSize        = 1;
-            float aspectRatio       = 1;
-            int flags               = 0;
-            cv::Mat&   cameraMatrix = m_cameraMatrix; 
-            cv::Mat&   distCoeffs   = m_distCoeffs;
-            VectorOfMat rvecs; 
+            float squareSize = 1;
+            float aspectRatio = 1;
+            int flags = 0;
+            cv::Mat&   cameraMatrix = m_cameraMatrix;
+            cv::Mat&   distCoeffs = m_distCoeffs;
+            VectorOfMat rvecs;
             VectorOfMat tvecs;
             std::vector<float> reprojErrs;
 
             m_calibrationSuccess = runCalibration(m_corners2d, m_imageSize, m_boardSize, patternType, squareSize, aspectRatio, flags, cameraMatrix, distCoeffs, rvecs, tvecs, reprojErrs, m_totalAvgErr);
         }
 
-		virtual Local<Value> CreateCallbackResult()
-		{
+        virtual Local<Value> CreateCallbackResult()
+        {
             NanScope();
             Local<Object> res = NanNew<Object>(); //Local(Object::New());
-            
-            NodeObject resultWrapper(res);
-            resultWrapper["intrinsic"]  = m_cameraMatrix;
-            resultWrapper["distCoeffs"] = m_distCoeffs;
-            resultWrapper["rmsError"]   = m_totalAvgErr;
 
-            NanReturnValue(res);			
+            NodeObject resultWrapper(res);
+            resultWrapper["intrinsic"] = m_cameraMatrix;
+            resultWrapper["distCoeffs"] = m_distCoeffs;
+            resultWrapper["rmsError"] = m_totalAvgErr;
+
+            NanReturnValue(res);
         }
 
-	private:
+    private:
 
         static void calcChessboardCorners(cv::Size boardSize, float squareSize, std::vector<cv::Point3f>& corners, PatternType patternType)
         {
             corners.resize(0);
 
-            switch(patternType)
+            switch (patternType)
             {
             case CHESSBOARD:
             case CIRCLES_GRID:
-                for( int i = 0; i < boardSize.height; i++ )
-                    for( int j = 0; j < boardSize.width; j++ )
-                        corners.push_back(cv::Point3f(float(j*squareSize), float(i*squareSize), 0));
+                for (int i = 0; i < boardSize.height; i++)
+                for (int j = 0; j < boardSize.width; j++)
+                    corners.push_back(cv::Point3f(float(j*squareSize), float(i*squareSize), 0));
                 break;
 
-            case ASYMMETRIC_CIRCLES_GRID:
-                for( int i = 0; i < boardSize.height; i++ )
-                    for( int j = 0; j < boardSize.width; j++ )
-                        corners.push_back(cv::Point3f(float((2*j + i % 2)*squareSize), float(i*squareSize), 0));
+            case ASCIRCLES_GRID:
+                for (int i = 0; i < boardSize.height; i++)
+                for (int j = 0; j < boardSize.width; j++)
+                    corners.push_back(cv::Point3f(float((2 * j + i % 2)*squareSize), float(i*squareSize), 0));
                 break;
 
             default:
@@ -205,24 +221,24 @@ namespace cloudcv
 
 
         static bool runCalibration(VectorOfVectorOf2DPoints imagePoints,
-                    cv::Size imageSize, 
-                    cv::Size boardSize, 
-                    PatternType patternType,
-                    float squareSize, 
-                    float aspectRatio,
-                    int flags, 
-                    cv::Mat& cameraMatrix, 
-                    cv::Mat& distCoeffs,
-                    VectorOfMat& rvecs, 
-                    VectorOfMat& tvecs,
-                    std::vector<float>& reprojErrs,
-                    double& totalAvgErr)
+            cv::Size imageSize,
+            cv::Size boardSize,
+            PatternType patternType,
+            float squareSize,
+            float aspectRatio,
+            int flags,
+            cv::Mat& cameraMatrix,
+            cv::Mat& distCoeffs,
+            VectorOfMat& rvecs,
+            VectorOfMat& tvecs,
+            std::vector<float>& reprojErrs,
+            double& totalAvgErr)
         {
             cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
 
-            if (flags & cv::CALIB_FIX_ASPECT_RATIO) 
+            if (flags & cv::CALIB_FIX_ASPECT_RATIO)
             {
-                cameraMatrix.at<double>(0,0) = aspectRatio;                
+                cameraMatrix.at<double>(0, 0) = aspectRatio;
             }
 
             distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
@@ -233,7 +249,7 @@ namespace cloudcv
             objectPoints.resize(imagePoints.size(), objectPoints[0]);
 
             double rms = cv::calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix,
-                            distCoeffs, rvecs, tvecs, flags | cv::CALIB_FIX_K4 | cv::CALIB_FIX_K5);
+                distCoeffs, rvecs, tvecs, flags | cv::CALIB_FIX_K4 | cv::CALIB_FIX_K5);
 
             std::cout << "RMS error reported by calibrateCamera: " << rms << std::endl;
 
@@ -247,29 +263,29 @@ namespace cloudcv
         static double computeReprojectionErrors(
             const VectorOfVectorOf3DPoints& objectPoints,
             const VectorOfVectorOf2DPoints& imagePoints,
-            const VectorOfMat& rvecs, 
+            const VectorOfMat& rvecs,
             const VectorOfMat& tvecs,
-            const cv::Mat& cameraMatrix, 
+            const cv::Mat& cameraMatrix,
             const cv::Mat& distCoeffs,
             std::vector<float>& perViewErrors
-        )
+            )
         {
             std::vector<cv::Point2f> imagePoints2;
             int totalPoints = 0;
             double totalErr = 0, err;
             perViewErrors.resize(objectPoints.size());
 
-            for (size_t i = 0; i < objectPoints.size(); i++ )
+            for (size_t i = 0; i < objectPoints.size(); i++)
             {
                 cv::projectPoints(cv::Mat(objectPoints[i]), rvecs[i], tvecs[i], cameraMatrix, distCoeffs, imagePoints2);
                 err = cv::norm(cv::Mat(imagePoints[i]), cv::Mat(imagePoints2), CV_L2);
                 int n = (int)objectPoints[i].size();
-                perViewErrors[i] = (float)std::sqrt(err*err/n);
+                perViewErrors[i] = (float)std::sqrt(err*err / n);
                 totalErr += err*err;
                 totalPoints += n;
             }
 
-            return std::sqrt(totalErr/totalPoints);
+            return std::sqrt(totalErr / totalPoints);
         }
 
     private:
@@ -279,156 +295,53 @@ namespace cloudcv
 
         VectorOfVectorOf2DPoints m_corners2d;
         bool                     m_calibrationSuccess;
-        cv::Mat                  m_cameraMatrix; 
+        cv::Mat                  m_cameraMatrix;
         cv::Mat                  m_distCoeffs;
         double                   m_totalAvgErr;
 
     };
 
-	NAN_METHOD(calibrationPatternDetect)
+    NAN_METHOD(calibrationPatternDetect)
     {
         NanScope();
 
-        if (args.Length() != 5)
+        Local<Object>	imageBuffer;
+        Local<Function> callback;
+        cv::Size        patternSize;
+        PatternType     pattern;
+
+        try
         {
-            return NanThrowError("Invalid number of arguments");  
+            if (NanCheck(args).ArgumentsCount(5)
+                .Argument(0).IsBuffer().Bind(imageBuffer)
+                .Argument(1).Bind(patternSize.width)
+                .Argument(2).Bind(patternSize.height)
+                .Argument(3).StringEnum<PatternType>({ 
+                    { "CHESSBOARD",     PatternType::CHESSBOARD }, 
+                    { "CIRCLES_GRID",   PatternType::CIRCLES_GRID }, 
+                    { "ACIRCLES_GRID",  PatternType::ASCIRCLES_GRID } }).Bind(pattern)
+                .Argument(4).IsFunction().Bind(callback))
+            {
+                // The task holds our custom status information for this asynchronous call,
+                // like the callback function we want to call when returning to the main
+                // thread and the status information.
+
+                NanCallback *nanCallback = new NanCallback(callback);
+                NanAsyncQueueWorker(new DetectPatternTask(imageBuffer, patternSize, pattern, nanCallback));
+                NanReturnValue(NanTrue());
+            }
+
+            NanReturnValue(NanFalse());
         }
-
-        if (!args[0]->IsObject())
+        catch (ArgumentMismatchException exc)
         {
-            return NanThrowTypeError("First argument should be a Buffer");      
+            return NanThrowTypeError(exc.what());
         }
-
-        // 0 - image
-        // 1 - width
-        // 2 - height
-        // 3 - pattern
-        // 4 - callback
-
-		int w  = args[1]->Uint32Value();
-		int h  = args[2]->Uint32Value();
-        int pt = args[3]->Uint32Value();
-        PatternType pattern;
-
-        switch (pt)
-        {
-            case 0:
-                pattern = CHESSBOARD;
-                break;
-
-            case 1:
-                pattern = CIRCLES_GRID;
-                break;
-
-            case 2:
-                pattern = ASYMMETRIC_CIRCLES_GRID;
-                break;    
-
-            default:
-                return NanThrowError("Unsupported pattern type. Only 0 (CHESSBOARD), 1 (CIRCLES_GRID) or 2 (ASYMMETRIC_CIRCLES_GRID) are supported.");
-        };
-
-        if (!args[4]->IsFunction())
-        {
-            return NanThrowTypeError("Last argument must be a function.");
-        }
-
-        // The task holds our custom status information for this asynchronous call,
-        // like the callback function we want to call when returning to the main
-        // thread and the status information.
-
-		NanCallback *callback = new NanCallback(args[4].As<Function>());
-
-		cv::Mat inputImage;
-
-		if (!MarshalToNativeImage(args[0], inputImage, 1))
-		{
-			v8::Local<v8::Value> argv[] = {
-				v8::Exception::Error(String::New("Cannot open image"))
-			};
-			callback->Call(1, argv);
-		}
-		else
-		{
-			NanAsyncQueueWorker(new DetectPatternTask(callback, w, h, pattern, inputImage, true));
-		}
-
-		NanReturnUndefined();
     }
 
-	NAN_METHOD(calibrateCamera)
+    NAN_METHOD(calibrateCamera)
     {
         NanScope();
-
-        if (args.Length() != 7)
-        {
-            return NanThrowError("Invalid number of arguments");  
-        }
-
-        if (!args[0]->IsObject())
-        {
-            return NanThrowTypeError("First argument should be a Buffer");      
-        }
-
-        // 0 - image
-        // 1 - width
-        // 2 - height
-        // 3 - pattern
-        // 4 - callback
-
-        int w  = args[1]->Uint32Value();
-        int h  = args[2]->Uint32Value();
-        int pt = args[3]->Uint32Value();
-
-        int frame_w  = args[4]->Uint32Value();
-        int frame_h  = args[5]->Uint32Value();
-
-        PatternType pattern;
-
-        switch (pt)
-        {
-            case 0:
-                pattern = CHESSBOARD;
-                break;
-
-            case 1:
-                pattern = CIRCLES_GRID;
-                break;
-
-            case 2:
-                pattern = ASYMMETRIC_CIRCLES_GRID;
-                break;    
-
-            default:
-                return NanThrowError("Unsupported pattern type. Only 0 (CHESSBOARD), 1 (CIRCLES_GRID) or 2 (ASYMMETRIC_CIRCLES_GRID) are supported.");
-        };
-
-        if (!args[6]->IsFunction())
-        {
-            return NanThrowTypeError("Last argument must be a function.");
-        }
-
-        // The task holds our custom status information for this asynchronous call,
-        // like the callback function we want to call when returning to the main
-        // thread and the status information.
-
-        NanCallback *callback = new NanCallback(args[6].As<Function>());
-
-        ComputeIntrinsicParametersTask::VectorOfVectorOf2DPoints v;
-
-        if (!MarshalToNative(args[0], v))
-        {
-            return NanThrowTypeError("Cannot convert first array.");            
-        }
-
-        // The task holds our custom status information for this asynchronous call,
-        // like the callback function we want to call when returning to the main
-        // thread and the status information.
-        NanAsyncQueueWorker(new ComputeIntrinsicParametersTask(callback, cv::Size(w, h), cv::Size(frame_w, frame_h), pattern, v));
-
-		NanReturnUndefined();
+        return NanThrowError("This function is not implemented yet");
     }
-
 }
-
-

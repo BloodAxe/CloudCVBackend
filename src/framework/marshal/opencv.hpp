@@ -35,23 +35,7 @@ V8Result MarshalFromNative(const cv::Vec<_Tp, cn>& value)
 	return scope.Close(result);
 }
 
-bool MarshalToNativeImage(v8::Local<v8::Value> buffer, cv::Mat& frame, int flags);
+bool MarshalToNativeImage(V8Result buffer, cv::Mat& frame, int flags);
 
 
 bool MarshalToNative(V8Result obj, cv::Point2f& value);
-
-
-template<typename _Tp>
-bool MarshalToNative(V8Result obj, std::vector<_Tp>& value)
-{
-    bool converted = true;
-
-    value.resize(obj.As<v8::Array>()->Length());
-
-    for (size_t i = 0; i < value.size(); i++)
-    {
-        converted &= MarshalToNative(obj.As<v8::Object>()->Get(i), value[i]);
-    }
-
-    return converted;
-}

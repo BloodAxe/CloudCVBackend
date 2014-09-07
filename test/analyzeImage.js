@@ -1,16 +1,19 @@
-var assert = require('assert');
-var fs = require('fs');
+var assert = require("assert")
+var fs     = require('fs');
 
-var cv = require("../build/Release/cloudcv");
+var cloudcv = require("../lib/cloudcv");
 
-exports['test cv.analyze'] = function() {
 
-	var imageData = fs.readFileSync("test/opencv-logo.jpg");
-	assert.isNotNull(imageData);
+describe('cv', function() {
 
-	cv.analyze(imageData, function(error, result) {
-
-		assert.isNotNull(result);
-        assert.equal(4, result.color.dominantColors.length);
-	});
-};
+    describe('analyzeImage', function() {
+        it('should run without error', function(done) {
+            var imageData = fs.readFileSync("test/opencv-logo.jpg");
+            cloudcv.analyzeImage(imageData, function(error, result) {    
+                assert.notStrictEqual(result, undefined);
+                assert.equal(4, result.dominantColors.length);
+                done();
+            });
+        });
+    });
+});

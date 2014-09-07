@@ -4,61 +4,31 @@
 #include "modules/analyze/dominantColors.hpp"
 
 #include <opencv2/opencv.hpp>
+#include <array>
 
-struct ImageInformation
+namespace cloudcv
 {
-	cv::Mat  sourceImage;       // Source image (can be resized)
-	cv::Mat  grayscaleImage;	// Grayscale image
-	cv::Size frameSize;			// Size of input image       
-	cv::Size aspectRatio;		// Aspect ratio of the input image
 
-	bool hasColor;
-};
+    /**
+    * Result of image analyze
+    */
+    struct AnalyzeResult
+    {
+        cv::Size                    frameSize;		// Size of input image       
+        cv::Size                    aspectRatio;	// Aspect ratio of the input image
 
-struct IntensityInformation
-{
-	cv::Mat_<uint8_t> image;
-	cv::Mat      histogramImage;
-	Distribution intensity;		// Distribution of the gray scale image intensity
-	float        rmsContrast;   // RMS contrast measure
-};
+        Distribution                intensity;		// Distribution of the gray scale image intensity
+        float                       rmsContrast;    // RMS contrast measure
+        std::array<cv::Scalar, 255> histogram;
+        int                         uniqieColors;
+        int                         reducedColors;
 
-struct ColorsInformation
-{
-	cv::Mat					   histogramImage;
-	cv::Mat                    dominantColorsImage;
+        std::vector<DominantColor> dominantColors;
+        RGBDistribution            colorDeviation;
+    };
 
-	int                     uniqieColors;
-	int                     reducedColors;
-	std::vector<DominantColor> dominantColors;
-	RGBDistribution            colorDeviation;
-};
+    std::ostream& operator<<(std::ostream& out, const AnalyzeResult& res);
 
-struct MorphologicInformation
-{
-	cv::Mat cannyImage;
+    void buildFromImage(cv::Mat input, AnalyzeResult& value);
 
-	int     cannyLowerThreshold;
-	int     cannyUpperThreshold;
-};
-
-/**
-* Result of image analyze
-*/
-struct AnalyzeResult
-{
-	ImageInformation             common;
-	IntensityInformation         grayscale;
-	ColorsInformation            color;
-	MorphologicInformation       edges;
-
-	std::map<std::string, float> profiling; 
-};
-
-std::ostream& operator<<(std::ostream& out, const AnalyzeResult& res);
-
-void buildFromImage(cv::Mat input, ImageInformation& value);
-void buildFromImage(cv::Mat input, IntensityInformation& value);
-void buildFromImage(cv::Mat input, ColorsInformation& value);
-void buildFromImage(cv::Mat input, MorphologicInformation& value, int cannyLower, int cannyUpper);
-void buildFromImage(cv::Mat input, AnalyzeResult& value);
+}

@@ -1,233 +1,238 @@
 #include "dominantColors.hpp"
 
-template<int N>
-inline int quantize(int val)
+namespace cloudcv
 {
-	val = val >> N;
-	val = val << N;
-	return val;
-}
 
-static inline int SQR(int val)
-{
-	return val * val;
-}
+    template<int N>
+    inline int quantize(int val)
+    {
+        val = val >> N;
+        val = val << N;
+        return val;
+    }
 
-int Color::distanceTo(const cv::Vec3b& other) const
-{
-	int r = hash         & 0xFF;
-	int g = (hash >> 8)  & 0xFF; 
-	int b = (hash >> 16) & 0xFF; 
+    static inline int SQR(int val)
+    {
+        return val * val;
+    }
 
-	int other_r = other.val[2];
-	int other_g = other.val[1];
-	int other_b = other.val[0];
+    int Color::distanceTo(const cv::Vec3b& other) const
+    {
+        int r = hash & 0xFF;
+        int g = (hash >> 8) & 0xFF;
+        int b = (hash >> 16) & 0xFF;
 
-	return SQR(r - other_r) + SQR(g - other_g) + SQR(b - other_b);
-}
+        int other_r = other.val[2];
+        int other_g = other.val[1];
+        int other_b = other.val[0];
 
-int Color::distanceTo(const Color& other) const
-{
-	int r = hash         & 0xFF;
-	int g = (hash >> 8)  & 0xFF; 
-	int b = (hash >> 16) & 0xFF; 
+        return SQR(r - other_r) + SQR(g - other_g) + SQR(b - other_b);
+    }
 
-	int other_r = other.hash         & 0xFF;
-	int other_g = (other.hash >> 8)  & 0xFF; 
-	int other_b = (other.hash >> 16) & 0xFF; 
+    int Color::distanceTo(const Color& other) const
+    {
+        int r = hash & 0xFF;
+        int g = (hash >> 8) & 0xFF;
+        int b = (hash >> 16) & 0xFF;
 
-	return SQR(r - other_r) + SQR(g - other_g) + SQR(b - other_b);
-}
+        int other_r = other.hash & 0xFF;
+        int other_g = (other.hash >> 8) & 0xFF;
+        int other_b = (other.hash >> 16) & 0xFF;
 
-void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)
-{
-	rVec.clear();
-	gVec.clear();
-	bVec.clear();
+        return SQR(r - other_r) + SQR(g - other_g) + SQR(b - other_b);
+    }
 
-	fullColorsTable.clear();
-	quantizedColorsTable.clear();
+    void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)
+    {
+        rVec.clear();
+        gVec.clear();
+        bVec.clear();
 
-	for (int row = 0; row < bgrImage.rows; row++)
-	{
-		for (int col = 0; col < bgrImage.cols; col++)
-		{
-			cv::Vec3b clr = bgrImage(row, col);
+        fullColorsTable.clear();
+        quantizedColorsTable.clear();
 
-			int b = clr[0];
-			int g = clr[1];
-			int r = clr[2];
+        for (int row = 0; row < bgrImage.rows; row++)
+        {
+            for (int col = 0; col < bgrImage.cols; col++)
+            {
+                cv::Vec3b clr = bgrImage(row, col);
 
-			int hash1 = r + (b << 8) + (g << 16);
-			int hash2 = quantize<2>(r) + (quantize<2>(g) << 8) + (quantize<2>(b) << 16);
+                int b = clr[0];
+                int g = clr[1];
+                int r = clr[2];
 
-			fullColorsTable[hash1]++;
-			quantizedColorsTable[hash2]++;
+                int hash1 = r + (b << 8) + (g << 16);
+                int hash2 = quantize<2>(r) +(quantize<2>(g) << 8) + (quantize<2>(b) << 16);
 
-			rVec.push_back(r);
-			gVec.push_back(g);
-			bVec.push_back(b);
-		}
-	}
+                fullColorsTable[hash1]++;
+                quantizedColorsTable[hash2]++;
 
-	std::set<Color> colors;
+                rVec.push_back(r);
+                gVec.push_back(g);
+                bVec.push_back(b);
+            }
+        }
 
-	for (std::map<int, int>::const_iterator it = quantizedColorsTable.begin(); it != quantizedColorsTable.end(); ++it)
-	{
-		colors.insert(Color(it->first, it->second));
-	}
+        std::set<Color> colors;
 
-	mainColors.clear();
+        for (std::map<int, int>::const_iterator it = quantizedColorsTable.begin(); it != quantizedColorsTable.end(); ++it)
+        {
+            colors.insert(Color(it->first, it->second));
+        }
 
-	std::set<Color> mfc;
-	std::set<Color> colorsSet = colors;
+        mainColors.clear();
 
-	int minPixelsInSet = static_cast<int>(bgrImage.rows * bgrImage.cols * 0.02); // Minimum amount for dominant color is 5% of the area of the image
+        std::set<Color> mfc;
+        std::set<Color> colorsSet = colors;
 
-	while (findLargestColorSet(3000, minPixelsInSet, colorsSet, mfc))
-	{
-		std::set<Color> restColors;
-		std::set_difference(colorsSet.begin(), colorsSet.end(), mfc.begin(), mfc.end(), std::inserter(restColors, restColors.end()));
-		colorsSet = restColors;
+        int minPixelsInSet = static_cast<int>(bgrImage.rows * bgrImage.cols * 0.02); // Minimum amount for dominant color is 5% of the area of the image
 
-		DominantColor c = computeFinalColor(mfc);
-		mainColors.push_back(c);
+        while (findLargestColorSet(3000, minPixelsInSet, colorsSet, mfc))
+        {
+            std::set<Color> restColors;
+            std::set_difference(colorsSet.begin(), colorsSet.end(), mfc.begin(), mfc.end(), std::inserter(restColors, restColors.end()));
+            colorsSet = restColors;
 
-	}
+            DominantColor c = computeFinalColor(mfc);
+            mainColors.push_back(c);
 
-	cv::Mat visImg = getImage();
-	int d = 0;
-}
+        }
 
-cv::Mat DominantColorsExtractor::getImage() const
-{
-	int rowWidth  = 250;
-	int rowHeight = 100;
+        cv::Mat visImg = getImage();
+        int d = 0;
+    }
 
-	cv::Mat img(mainColors.size() * rowHeight, rowWidth, CV_8UC3);
+    cv::Mat DominantColorsExtractor::getImage() const
+    {
+        int rowWidth = 250;
+        int rowHeight = 100;
 
-	for (size_t i = 0; i < mainColors.size(); i++)
-	{
-		DominantColor c = mainColors[i];
+        cv::Mat img(mainColors.size() * rowHeight, rowWidth, CV_8UC3);
 
-		cv::Scalar clr = CV_RGB(c.color.val[2], c.color.val[1], c.color.val[0]);
+        for (size_t i = 0; i < mainColors.size(); i++)
+        {
+            DominantColor c = mainColors[i];
 
-		cv::rectangle(img, cv::Rect(0, i * rowHeight, rowWidth, rowHeight), clr, -1);
-		std::ostringstream os;
-		os << "Pixels:" << mainColors[i].totalPixels << " Error: " << c.error;
+            cv::Scalar clr = CV_RGB(c.color.val[2], c.color.val[1], c.color.val[0]);
 
-		cv::putText(img, os.str(), cv::Point(10, i * rowHeight + 20), CV_FONT_HERSHEY_PLAIN, 1, CV_RGB(1,1,1), 1, CV_AA);
-	}
+            cv::rectangle(img, cv::Rect(0, i * rowHeight, rowWidth, rowHeight), clr, -1);
+            std::ostringstream os;
+            os << "Pixels:" << mainColors[i].totalPixels << " Error: " << c.error;
 
-	return img;
-}
+            cv::putText(img, os.str(), cv::Point(10, i * rowHeight + 20), CV_FONT_HERSHEY_PLAIN, 1, CV_RGB(1, 1, 1), 1, CV_AA);
+        }
 
-DominantColor DominantColorsExtractor::computeFinalColor(const std::set<Color>& colorsSet) const
-{
-	float final_r = 0, final_g = 0, final_b = 0;
+        return img;
+    }
 
-	int totalPixels = 0;
-	
-	typedef std::set<Color>::const_iterator It;
+    DominantColor DominantColorsExtractor::computeFinalColor(const std::set<Color>& colorsSet) const
+    {
+        float final_r = 0, final_g = 0, final_b = 0;
 
-	for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
-	{
-		totalPixels += it->count;
-	}
+        int totalPixels = 0;
 
-	for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
-	{
-		Color c = *it;
-	
-		int r = c.hash         & 0xFF;
-		int g = (c.hash >> 8)  & 0xFF; 
-		int b = (c.hash >> 16) & 0xFF; 
+        typedef std::set<Color>::const_iterator It;
 
-		float weight = (float)c.count / (float)totalPixels;
+        for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
+        {
+            totalPixels += it->count;
+        }
 
-		final_r += weight * r;
-		final_g += weight * g;
-		final_b += weight * b;
-	}
+        for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
+        {
+            Color c = *it;
 
-	DominantColor dc;
+            int r = c.hash & 0xFF;
+            int g = (c.hash >> 8) & 0xFF;
+            int b = (c.hash >> 16) & 0xFF;
 
-	dc.color = cv::Vec3b
-		(
-		cv::saturate_cast<uint8_t>(final_b), 
-		cv::saturate_cast<uint8_t>(final_g), 
-		cv::saturate_cast<uint8_t>(final_r)
-		);
+            float weight = (float)c.count / (float)totalPixels;
 
-	dc.totalPixels = totalPixels;
-	dc.error = 0;
+            final_r += weight * r;
+            final_g += weight * g;
+            final_b += weight * b;
+        }
 
-	for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
-	{
-		float weight = (float)it->count / (float)totalPixels;
-		dc.error += weight * it->distanceTo(dc.color);
-	}
+        DominantColor dc;
 
-	return dc;
-}
+        dc.color = cv::Vec3b
+            (
+            cv::saturate_cast<uint8_t>(final_b),
+            cv::saturate_cast<uint8_t>(final_g),
+            cv::saturate_cast<uint8_t>(final_r)
+            );
 
-bool DominantColorsExtractor::findLargestColorSet(int similarityTolerance, int minPixelsInSet, const std::set<Color>& input, std::set<Color>& colorsSet) const
-{
-	colorsSet.clear();
+        dc.totalPixels = totalPixels;
+        dc.error = 0;
 
-	if (input.empty())
-		return false;
+        for (It it = colorsSet.begin(); it != colorsSet.end(); it++)
+        {
+            float weight = (float)it->count / (float)totalPixels;
+            dc.error += weight * it->distanceTo(dc.color);
+        }
 
-	typedef std::set<Color>::const_iterator It;
+        return dc;
+    }
 
-	It largestColorIt = input.begin();
-	int largestCount = largestColorIt->count;
+    bool DominantColorsExtractor::findLargestColorSet(int similarityTolerance, int minPixelsInSet, const std::set<Color>& input, std::set<Color>& colorsSet) const
+    {
+        colorsSet.clear();
 
-	for (It it = input.begin(); it != input.end(); it++)
-	{
-		if (it->count > largestCount)
-		{
-			largestCount = it->count;
-			largestColorIt = it;
-		}
-	}
+        if (input.empty())
+            return false;
 
-	Color mfc = *largestColorIt;
-	int totalPixelsInSet = 0;
+        typedef std::set<Color>::const_iterator It;
 
-	for (It it = input.begin(); it != input.end(); it++)
-	{
-		Color other = *it;
-		int distance = mfc.distanceTo(other);
+        It largestColorIt = input.begin();
+        int largestCount = largestColorIt->count;
 
-		if (distance < similarityTolerance)
-		{
-			totalPixelsInSet += other.count;
-			colorsSet.insert(other);
-		}
-	}
+        for (It it = input.begin(); it != input.end(); it++)
+        {
+            if (it->count > largestCount)
+            {
+                largestCount = it->count;
+                largestColorIt = it;
+            }
+        }
 
-	return !colorsSet.empty() && totalPixelsInSet > minPixelsInSet;
-}
+        Color mfc = *largestColorIt;
+        int totalPixelsInSet = 0;
+
+        for (It it = input.begin(); it != input.end(); it++)
+        {
+            Color other = *it;
+            int distance = mfc.distanceTo(other);
+
+            if (distance < similarityTolerance)
+            {
+                totalPixelsInSet += other.count;
+                colorsSet.insert(other);
+            }
+        }
+
+        return !colorsSet.empty() && totalPixelsInSet > minPixelsInSet;
+    }
 
 
-RGBDistribution DominantColorsExtractor::getColorDeviation() const
-{
-	RGBDistribution cd;
+    RGBDistribution DominantColorsExtractor::getColorDeviation() const
+    {
+        RGBDistribution cd;
 
-	cd.r   = distribution(rVec);
-	cd.g = distribution(gVec);
-	cd.b  = distribution(bVec);
+        cd.r = distribution(rVec);
+        cd.g = distribution(gVec);
+        cd.b = distribution(bVec);
 
-	return cd;
-}
+        return cd;
+    }
 
-int DominantColorsExtractor::getUniqueColors() const
-{
-	return fullColorsTable.size();
-}
+    int DominantColorsExtractor::getUniqueColors() const
+    {
+        return fullColorsTable.size();
+    }
 
-int DominantColorsExtractor::getRedicedColors() const
-{
-	return quantizedColorsTable.size();
+    int DominantColorsExtractor::getRedicedColors() const
+    {
+        return quantizedColorsTable.size();
+    }
+
 }

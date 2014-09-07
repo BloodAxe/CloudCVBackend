@@ -59,10 +59,12 @@ NodeObject::NodeObject(Local<Object>& target)
 
 NodeObjectProperty NodeObject::operator[](const std::string& propertyName)
 {
-	return NodeObjectProperty(Persistent<Object>::New(m_target), propertyName);
+    NanScope();
+    return NodeObjectProperty(Persistent<Object>::New(m_target), propertyName);
 }
 
 NodeObjectProperty NodeObject::operator[](size_t propertyIdx)
 {
+    NanScope();
     return NodeObjectProperty(Persistent<Object>::New(m_target), ToString(propertyIdx));
 }
