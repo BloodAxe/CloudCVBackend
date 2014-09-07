@@ -3,6 +3,12 @@
     'target_defaults': {
         'default_configuration': 'Release',
 
+        # Replace with if you want to have debug build 
+        # 'opencv_lib_suffix' : 'd',
+
+        'variables': { 
+            'opencv_lib_suffix': ''
+        }
     },
 
     'targets': [
@@ -64,28 +70,38 @@
 
             'include_dirs': [
               'src/',
-			  "<!(node -e \"require('nan')\")"
+              "<!(node -e \"require('nan')\")"
             ],
 
             'conditions': [
             
                 ['OS=="win"', {
 
+                    'variables': { 
+                        'opencv_root':          '$(OPENCV_ROOT)',
+                    },
+
+
                     'configurations': {
 
                         'Debug': {
+
                             'defines': [ 'DEBUG', '_DEBUG' ],
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
-                                    'RuntimeLibrary': 2, # static debug
+                                    'ExceptionHandling': 1,
+                                    'RuntimeLibrary': 3, # dynamic debug
                                 },
                             },
+
                         },
 
                         'Release': {
+
                             'defines': [ 'NDEBUG' ],
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
+                                    'ExceptionHandling': 1,
                                     'RuntimeLibrary': 2, # static release
                                 },
                             },
@@ -101,28 +117,28 @@
                     ],
 
                     'libraries': [
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_calib3d247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_contrib247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_core247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_features2d247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_flann247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_highgui247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_imgproc247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_legacy247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_ml247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_nonfree247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_objdetect247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_photo247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_stitching247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_superres247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_ts247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_video247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/opencv_videostab247.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/libjpeg.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/libtiff.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/libpng.lib",
-                        "<(opencv_root)/x86/vc11/staticlib/zlib.lib"
-                    ]
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_calib3d300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_contrib300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_core300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_features2d300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_flann300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_highgui300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_imgproc300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_legacy300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_ml300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_nonfree300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_objdetect300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_photo300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_stitching300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_superres300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_ts300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_video300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/opencv_videostab300>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/libjpeg>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/libpng>(opencv_lib_suffix).lib",
+                                "<(opencv_root)/x64/vc12/staticlib/zlib>(opencv_lib_suffix).lib"
+                            ]
+
                 }],
 
                 ['OS=="mac"', {

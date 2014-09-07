@@ -17,11 +17,15 @@ namespace cloudcv {
         virtual ~Job();
 		explicit Job(NanCallback *callback);
 
+        void Execute();
+
+        virtual void HandleOKCallback();
+
     protected:
+        virtual void ExecuteNativeCode() = 0;
 
 		virtual Local<Value> CreateCallbackResult() = 0;
 
-		virtual void HandleOKCallback();
 
     private:
     };

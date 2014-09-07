@@ -1,4 +1,5 @@
 #include "Job.hpp"
+#include <stdexcept>
 
 namespace cloudcv {
 
@@ -9,6 +10,20 @@ namespace cloudcv {
 
     Job::~Job()
     {
+    }
+
+    void Job::Execute()
+    {
+        try
+        {
+            ExecuteNativeCode();
+            std::cout << "Native code ended" << std::endl;
+        }
+        catch (std::runtime_error& e)
+        {
+            std::cout << e.what() << std::endl;
+            SetErrorMessage(e.what());
+        }
     }
 
 	void Job::HandleOKCallback()
