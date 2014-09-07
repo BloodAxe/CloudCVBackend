@@ -198,6 +198,10 @@
                     'include_dirs': [
                         '/usr/local/include'
                     ],
+
+                    "cflags": [
+                        "-std=c++11", "-stdlib=libc++"
+                    ],
                     
                     'libraries': [
                         "/usr/local/lib/libopencv_contrib.a",
@@ -214,12 +218,11 @@
                         "/usr/local/lib/libopencv_video.a", 
                         "/usr/local/lib/libopencv_features2d.a", 
                         "/usr/local/lib/libopencv_highgui.a", 
-                        "/usr/local/share/OpenCV/3rdparty/lib/liblibtiff.a", 
-                        "/usr/local/share/OpenCV/3rdparty/lib/liblibpng.a", 
-                        "/usr/local/share/OpenCV/3rdparty/lib/liblibjpeg.a", 
                         "/usr/local/lib/libopencv_flann.a", 
                         "/usr/local/lib/libopencv_imgproc.a", 
                         "/usr/local/lib/libopencv_core.a", 
+                        "/usr/local/share/OpenCV/3rdparty/lib/liblibpng.a", 
+                        "/usr/local/share/OpenCV/3rdparty/lib/liblibjpeg.a", 
                         "/usr/local/share/OpenCV/3rdparty/lib/libzlib.a"
                     ]
                 }]       
