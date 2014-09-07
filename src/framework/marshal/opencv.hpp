@@ -9,12 +9,19 @@ V8Result MarshalFromNative(const cv::Size& value);
 V8Result MarshalFromNative(const cv::Point& value);
 V8Result MarshalFromNative(const cv::Point2f& value);
 
+/*
+cv::Mat will be marshalled to JS as a wrapped object with methods to:
+- get raw buffer
+- get encoded (PNG, JPG, WEBP) image
+- write to stream
+
 enum OpenCVMatMarshalType {
     OpenCVMatMarshalTypeImage,
     OpenCVMatMarshalTypeMatrix
 };
 
 V8Result MarshalFromNative(const cv::Mat& value, OpenCVMatMarshalType type = OpenCVMatMarshalTypeMatrix);
+*/
 V8Result MarshalFromNative(const cv::Rect& value);
 V8Result MarshalFromNative(const cv::Scalar& value);
 V8Result MarshalFromNative(const cv::Matx33f& value);

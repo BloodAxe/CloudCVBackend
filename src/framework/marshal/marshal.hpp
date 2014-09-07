@@ -8,4 +8,3 @@ typedef v8::Local<v8::Value> V8Result;
 #include <framework/marshal/primitives.hpp>
 #include <framework/marshal/opencv.hpp>
 #include <framework/marshal/stl.hpp>
-#include <framework/marshal/node_object_builder.hpp>

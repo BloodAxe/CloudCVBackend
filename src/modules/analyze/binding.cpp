@@ -9,50 +9,17 @@
 
 using namespace v8;
 using namespace node;
+using namespace cloudcv;
 
-namespace {
-    V8Result MarshalFromNative(const cloudcv::Distribution& d)
-    {
-        NanScope();
-        Local<Object> structure = NanNew<Object>();
-        NodeObject resultWrapper(structure);
-
-        resultWrapper["average"] = d.average;
-        resultWrapper["entropy"] = d.entropy;
-        resultWrapper["max"] = d.max;
-        resultWrapper["min"] = d.min;
-        resultWrapper["standardDeviation"] = d.standardDeviation;
-
-        NanReturnValue(structure);
-    }
-
-    V8Result MarshalFromNative(const cloudcv::DominantColor& d)
-    {
-        NanScope();
-        Local<Object> structure = NanNew<Object>();
-        NodeObject resultWrapper(structure);
-
-        resultWrapper["average"] = d.color;
-        resultWrapper["entropy"] = d.error;
-        resultWrapper["max"] = d.interclassVariance;
-        resultWrapper["min"] = d.totalPixels;
-
-        NanReturnValue(structure);
-    }
-
-    V8Result MarshalFromNative(const cloudcv::RGBDistribution& d)
-    {
-        NanScope();
-        Local<Object> structure = NanNew<Object>();
-        NodeObject resultWrapper(structure);
-
-        resultWrapper["b"] = d.b;
-        resultWrapper["g"] = d.g;
-        resultWrapper["r"] = d.r;
-
-        NanReturnValue(structure);
-    }
+namespace cloudcv
+{
+    V8Result MarshalFromNative(const Distribution& d);
+    V8Result MarshalFromNative(const DominantColor& d);
+    V8Result MarshalFromNative(const RGBDistribution& d);
+    V8Result MarshalFromNative(const AnalyzeResult& res);
 }
+
+#include <framework/marshal/node_object_builder.hpp>
 
 namespace cloudcv
 {
@@ -104,22 +71,7 @@ namespace cloudcv
         virtual Local<Value> CreateCallbackResult()
         {
             NanScope();
-
-            Local<Object> res = NanNew<Object>();
-
-            NodeObject resultWrapper(res);
-
-            resultWrapper["aspectRatio"] = m_analyzeResult.aspectRatio;
-            resultWrapper["colorDeviation"] = m_analyzeResult.colorDeviation;
-            resultWrapper["dominantColors"] = m_analyzeResult.dominantColors;
-            resultWrapper["frameSize"] = m_analyzeResult.frameSize;
-            resultWrapper["histogram"] = m_analyzeResult.histogram;
-            resultWrapper["intensity"] = m_analyzeResult.intensity;
-            resultWrapper["reducedColors"] = m_analyzeResult.reducedColors;
-            resultWrapper["rmsContrast"] = m_analyzeResult.rmsContrast;
-            resultWrapper["uniqieColors"] = m_analyzeResult.uniqieColors;
-
-            NanReturnValue(res);
+            NanReturnValue(MarshalFromNative(m_analyzeResult));
         }
 
     private:
@@ -157,5 +109,67 @@ namespace cloudcv
         {
             return NanThrowTypeError(exc.what());
         }
+    }
+
+    V8Result MarshalFromNative(const Distribution& d)
+    {
+        NanScope();
+        Local<Object> structure = NanNew<Object>();
+        NodeObject resultWrapper(structure);
+
+        resultWrapper["average"] = d.average;
+        resultWrapper["entropy"] = d.entropy;
+        resultWrapper["max"] = d.max;
+        resultWrapper["min"] = d.min;
+        resultWrapper["standardDeviation"] = d.standardDeviation;
+
+        NanReturnValue(structure);
+    }
+
+    V8Result MarshalFromNative(const DominantColor& d)
+    {
+        NanScope();
+        Local<Object> structure = NanNew<Object>();
+        NodeObject resultWrapper(structure);
+
+        resultWrapper["average"] = d.color;
+        resultWrapper["entropy"] = d.error;
+        resultWrapper["max"] = d.interclassVariance;
+        resultWrapper["min"] = d.totalPixels;
+
+        NanReturnValue(structure);
+    }
+
+    V8Result MarshalFromNative(const RGBDistribution& d)
+    {
+        NanScope();
+        Local<Object> structure = NanNew<Object>();
+        NodeObject resultWrapper(structure);
+
+        resultWrapper["b"] = d.b;
+        resultWrapper["g"] = d.g;
+        resultWrapper["r"] = d.r;
+
+        NanReturnValue(structure);
+    }
+
+    V8Result MarshalFromNative(const AnalyzeResult& res)
+    {
+        NanScope();
+        Local<Object> structure = NanNew<Object>();
+        NodeObject resultWrapper(structure);
+
+        resultWrapper["aspectRatio"] = res.aspectRatio;
+        resultWrapper["colorDeviation"] = res.colorDeviation;
+        resultWrapper["dominantColors"] = res.dominantColors;
+        resultWrapper["frameSize"] = res.frameSize;
+        resultWrapper["histogram"] = res.histogram;
+        resultWrapper["intensity"] = res.intensity;
+        resultWrapper["reducedColors"] = res.reducedColors;
+
+        resultWrapper["rmsContrast"] = res.rmsContrast;
+        resultWrapper["uniqieColors"] = res.uniqieColors;
+
+        NanReturnValue(structure);
     }
 }

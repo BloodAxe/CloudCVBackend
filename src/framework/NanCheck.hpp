@@ -124,7 +124,7 @@ public:
     NanMethodArgumentAdaptor& NotNull();
 
     template <typename T>
-    NanArgStringEnum<T>& StringEnum(std::initializer_list< std::pair<const char*, T> > possibleValues);
+    NanArgStringEnum<T> StringEnum(std::initializer_list< std::pair<const char*, T> > possibleValues);
 
 	template <typename T>
 	NanMethodArgumentHeler& Bind(v8::Local<T>& value);
@@ -164,7 +164,7 @@ NanMethodArgumentHeler& NanMethodArgumentAdaptor::Bind(T& value)
 }
 
 template <typename T>
-NanArgStringEnum<T>& NanMethodArgumentAdaptor::StringEnum(std::initializer_list< std::pair<const char*, T> > possibleValues)
+NanArgStringEnum<T> NanMethodArgumentAdaptor::StringEnum(std::initializer_list< std::pair<const char*, T> > possibleValues)
 {
     return std::move(NanArgStringEnum<T>(possibleValues, IsString(), m_index));
 }

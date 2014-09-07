@@ -1,5 +1,4 @@
 #include "marshal.hpp"
-#include "node/node_helpers.hpp"
 #include "node_object_builder.hpp"
 
 using namespace v8;
@@ -74,50 +73,6 @@ V8Result MarshalFromNative(const cv::Scalar& value)
 
 	return scope.Close(result);
 }
-
-V8Result MarshalFromNative(const cv::Mat& value, OpenCVMatMarshalType type)
-{
-    if (type == OpenCVMatMarshalTypeImage)
-    {
-        HandleScope scope;    
-        return scope.Close(MarshalFromNative(toDataUri(value, kImageTypePng)));        
-    }
-    else
-    {
-        NanScope();
-        Local<Object> res = NanNew<Object>();
-        
-        NodeObject resultWrapper(res);
-        resultWrapper["size"]     = value.size();
-        resultWrapper["channels"] = value.channels();
-
-        size_t length = value.total();
-
-        switch (value.type())
-        {
-            case CV_8U:
-                resultWrapper["type"] = "CV_8U";
-                resultWrapper["data"] = std::vector<uint8_t>((uint8_t*)value.data, (uint8_t*)value.data + length);
-                break;
-
-            case CV_32F:
-                resultWrapper["type"] = "CV_32F";
-                resultWrapper["data"] = std::vector<float>( (float*)value.data,    (float*)value.data + length);
-                break;
-
-            case CV_64F:
-                resultWrapper["type"] = "CV_64F";
-                resultWrapper["data"] = std::vector<double>( (double*)value.data,  (double*)value.data + length);
-                break;
-
-            default:
-                break;
-        };
-
-        NanReturnValue(res);
-    }
-}
-
 
 bool MarshalToNativeImage(V8Result imageBuffer, cv::Mat& frame, int flags)
 {

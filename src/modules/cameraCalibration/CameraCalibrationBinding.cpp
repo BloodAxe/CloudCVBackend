@@ -1,9 +1,9 @@
 #include "CameraCalibrationBinding.hpp"
 
 #include <framework/marshal/marshal.hpp>
+#include <framework/marshal/node_object_builder.hpp>
 #include <framework/Job.hpp>
 #include <framework/NanCheck.hpp>
-#include <node/node_helpers.hpp>
 
 using namespace v8;
 using namespace node;

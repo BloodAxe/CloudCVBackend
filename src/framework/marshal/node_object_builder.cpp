@@ -1,6 +1,7 @@
-#include <framework/marshal/marshal.hpp>
+#include "node_object_builder.hpp"
 #include <string>
 #include <iostream>
+#include <sstream>
 
 using namespace v8;
 
