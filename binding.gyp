@@ -39,9 +39,6 @@
                 "src/framework/Job.hpp",                
                 "src/framework/Job.cpp",
 
-                "src/node/node_helpers.hpp", 
-                "src/node/node_helpers.cpp",
-                    
                 "src/framework/NanCheck.hpp",
                 "src/framework/NanCheck.cpp",
                 
