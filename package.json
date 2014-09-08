@@ -4,10 +4,10 @@
   "description": "CloudCV backend module",
   "author": "Eugene Khvedchenya <ekhvedchenya@gmail.com>",
   "license": "MIT",
-  "main": "./lib/cloudcv.js",
+  "main": "../build/Release/cloudcv",
   "scripts": {
     "preinstall": "node-gyp clean rebuild",
-    "test": "mocha test/analyzeImage.js"
+    "test": "mocha test/*.js"
   },
   "dependencies": {
     "nan": "*"

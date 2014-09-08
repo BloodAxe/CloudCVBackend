@@ -5,13 +5,6 @@
 
 using namespace v8;
 
-std::string ToString(size_t value)
-{
-    std::ostringstream str;
-    str << value;
-    return str.str();
-}
-
 NodeObjectProperty::NodeObjectProperty(Persistent<Object> parent, const std::string& propertyName)
 	: m_parent(parent)
 	, m_propertyName(propertyName)
@@ -28,7 +21,7 @@ NodeObjectProperty NodeObjectProperty::operator[](const std::string& propertyNam
 {
 	NanScope();
 
-	Local<Value> prop = m_parent->Get(String::NewSymbol(m_propertyName.c_str()));
+	Local<Value> prop = m_parent->Get(NanNew(m_propertyName.c_str()));
 
 	bool propertyExistsAndIsObject = prop->IsObject();
 
@@ -37,11 +30,11 @@ NodeObjectProperty NodeObjectProperty::operator[](const std::string& propertyNam
 	if (!propertyExistsAndIsObject)
 	{
 		target = Persistent<Object>::New(Object::New());
-		m_parent->Set(v8::String::NewSymbol(m_propertyName.c_str()), target);
+		m_parent->Set(NanNew(m_propertyName.c_str()), target);
 	}
 	else
 	{
-		target = Persistent<Object>::New( Local<Object>::Cast(m_parent->Get(String::NewSymbol(m_propertyName.c_str()))));
+		target = Persistent<Object>::New( Local<Object>::Cast(m_parent->Get(NanNew(m_propertyName.c_str()))));
 	}
 
 	return NodeObjectProperty(target, propertyName);
@@ -49,7 +42,7 @@ NodeObjectProperty NodeObjectProperty::operator[](const std::string& propertyNam
 
 NodeObjectProperty NodeObjectProperty::operator[](size_t propertyIdx)
 {
-    return this->operator[](ToString(propertyIdx));
+    return this->operator[](lexical_cast(propertyIdx));
 }
 
 NodeObject::NodeObject(Local<Object>& target)
@@ -67,5 +60,5 @@ NodeObjectProperty NodeObject::operator[](const std::string& propertyName)
 NodeObjectProperty NodeObject::operator[](size_t propertyIdx)
 {
     NanScope();
-    return NodeObjectProperty(Persistent<Object>::New(m_target), ToString(propertyIdx));
+    return NodeObjectProperty(Persistent<Object>::New(m_target), lexical_cast(propertyIdx));
 }

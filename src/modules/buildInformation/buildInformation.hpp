@@ -6,5 +6,6 @@
 
 namespace cloudcv 
 {
+    NAN_METHOD(version);
 	NAN_METHOD(buildInformation);
 }

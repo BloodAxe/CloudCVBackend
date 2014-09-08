@@ -12,13 +12,7 @@
 
 #include <framework/marshal/marshal.hpp>
 
-template <typename T>
-std::string lexical_cast(const T& value)
-{
-	std::ostringstream sSteam;
-	sSteam << value;
-	return sSteam.str();
-}
+
 
 class ArgumentMismatchException
 {

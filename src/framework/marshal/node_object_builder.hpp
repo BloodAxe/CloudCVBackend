@@ -3,6 +3,8 @@
 #include <v8.h>
 #include <nan.h>
 
+#include <framework/marshal/marshal.hpp>
+
 typedef v8::Local<v8::Value> V8Result;
 
 class NodeObject;
@@ -39,6 +41,6 @@ private:
 template <typename Val>
 NodeObjectProperty& NodeObjectProperty::operator=(const Val& val)
 {
-	m_parent->Set(v8::String::NewSymbol(m_propertyName.c_str()), MarshalFromNative(val));
+	m_parent->Set(NanNew(m_propertyName.c_str()), MarshalFromNative(val));
 	return *this;
 }

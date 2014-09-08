@@ -16,7 +16,7 @@
             'target_name': "cloudcv",
 
             'sources': [ 
-                "main.cpp", 
+                "src/main.cpp", 
                 
                 "src/framework/marshal/marshal.hpp",                
                 "src/framework/marshal/marshal.cpp",
