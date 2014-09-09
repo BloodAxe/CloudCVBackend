@@ -26,7 +26,7 @@ V8Result MarshalFromNative(const std::vector<T>& values)
 		result->Set(i, MarshalFromNative(item));
 	}
 
-	return scope.Close(result);
+	NanReturnValue(result);
 }
 
 template<typename _Val_type>
@@ -43,7 +43,7 @@ V8Result MarshalFromNative(const std::map<std::string, _Val_type>& values)
 		structure->Set(MarshalFromNative(it->first), MarshalFromNative(it->second));
 	}
 
-	return scope.Close(structure);
+	NanReturnValue(structure);
 }
 
 template<typename _Tp, size_t _Size>
@@ -61,7 +61,7 @@ V8Result MarshalFromNative(const std::array<_Tp, _Size>& values)
         result->Set(i, MarshalFromNative(item));
     }
 
-    return scope.Close(result);
+    NanReturnValue(result);
 }
 
 //////////////////////////////////////////////////////////////////////////

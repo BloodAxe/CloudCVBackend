@@ -22,13 +22,13 @@ namespace cloudcv
         std::array<cv::Scalar, 255> histogram;
         int                         uniqieColors;
         int                         reducedColors;
-
+        cv::Mat                     quantizedColors;
         std::vector<DominantColor> dominantColors;
         RGBDistribution            colorDeviation;
     };
 
     std::ostream& operator<<(std::ostream& out, const AnalyzeResult& res);
 
-    void buildFromImage(cv::Mat input, AnalyzeResult& value);
+    void AnalyzeImage(cv::Mat input, AnalyzeResult& value);
 
 }

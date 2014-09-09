@@ -63,7 +63,7 @@ namespace cloudcv
                 return;
             }
 
-            buildFromImage(m_source, m_analyzeResult);
+            AnalyzeImage(m_source, m_analyzeResult);
         }
 
         // This function is executed in the main V8/JavaScript thread. That means it's
@@ -166,7 +166,7 @@ namespace cloudcv
         resultWrapper["histogram"] = res.histogram;
         resultWrapper["intensity"] = res.intensity;
         resultWrapper["reducedColors"] = res.reducedColors;
-
+        resultWrapper["quantizedColors"] = res.quantizedColors;
         resultWrapper["rmsContrast"] = res.rmsContrast;
         resultWrapper["uniqieColors"] = res.uniqieColors;
 

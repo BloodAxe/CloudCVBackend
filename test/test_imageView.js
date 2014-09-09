@@ -56,7 +56,8 @@ describe('cv', function() {
         it('asObject', function(done) {
             var imview = new cloudcv.ImageView("test/opencv-small.png");
             var object = imview.asObject();
-            console.log(inspect(object));
+            assert.notEqual(null, object);
+            //console.log(inspect(object));
             done();
         });
     });

@@ -1,49 +1,50 @@
 #include "marshal.hpp"
 #include "node_object_builder.hpp"
+#include "framework/Image.hpp"
 
 using namespace v8;
 
 V8Result MarshalFromNative(const cv::Size& value)
 {
-	HandleScope scope;
+	NanScope();
 	Local<Object> structure = Object::New();
 	structure->Set(String::NewSymbol("width"), MarshalFromNative(value.width));
 	structure->Set(String::NewSymbol("height"), MarshalFromNative(value.height));
-	return scope.Close(structure);
+	NanReturnValue(structure);
 }
 
 V8Result MarshalFromNative(const cv::Rect& value)
 {
-	HandleScope scope;
+	NanScope();
 	Local<Object> structure = Object::New();
 	structure->Set(String::NewSymbol("x"), MarshalFromNative(value.x));
 	structure->Set(String::NewSymbol("y"), MarshalFromNative(value.y));
 	structure->Set(String::NewSymbol("width"), MarshalFromNative(value.width));
 	structure->Set(String::NewSymbol("height"), MarshalFromNative(value.height));
-	return scope.Close(structure);
+	NanReturnValue(structure);
 }
 
 V8Result MarshalFromNative(const cv::Point& value)
 {
-	HandleScope scope;
+	NanScope();
 	Local<Object> structure = Object::New();
 	structure->Set(String::NewSymbol("x"), MarshalFromNative(value.x));
 	structure->Set(String::NewSymbol("y"), MarshalFromNative(value.y));
-	return scope.Close(structure);
+	NanReturnValue(structure);
 }
 
 V8Result MarshalFromNative(const cv::Point2f& value)
 {
-	HandleScope scope;
+	NanScope();
 	Local<Object> structure = Object::New();
 	structure->Set(String::NewSymbol("x"), MarshalFromNative(value.x));
 	structure->Set(String::NewSymbol("y"), MarshalFromNative(value.y));
-	return scope.Close(structure);
+	NanReturnValue(structure);
 }
 
 V8Result MarshalFromNative(const cv::Matx33f& value)
 {
-    HandleScope scope;
+    NanScope();
     Handle<Array> result = Array::New(9);
     
     result->Set(0, MarshalFromNative( value(0,0) ));
@@ -58,20 +59,26 @@ V8Result MarshalFromNative(const cv::Matx33f& value)
     result->Set(7, MarshalFromNative( value(2,1) ));
     result->Set(8, MarshalFromNative( value(2,2) ));
 
-    return scope.Close(result);
+    NanReturnValue(result);
 }
 
 V8Result MarshalFromNative(const cv::Scalar& value)
 {
-	HandleScope scope;
-	Handle<Array> result = Array::New(4);
+    NanScope();
+    Handle<Array> result = Array::New(4);
 
 	for (size_t i = 0; i < 4; i++) 
 	{
 		result->Set(i, MarshalFromNative(value.val[i]));
 	}
 
-	return scope.Close(result);
+	NanReturnValue(result);
+}
+
+V8Result MarshalFromNative(const cv::Mat& value)
+{
+    NanScope();
+    NanReturnValue(cloudcv::ImageView::ViewForImage(value));
 }
 
 bool MarshalToNativeImage(V8Result imageBuffer, cv::Mat& frame, int flags)
@@ -92,3 +99,5 @@ bool MarshalToNative(V8Result obj, cv::Point2f& value)
 
     return true;
 }
+
+

@@ -356,6 +356,18 @@ namespace cloudcv
         auto imageView = new ImageView(im);
 
         imageView->Wrap(args.Holder());
-        return scope.Close(args.Holder());
+        NanReturnValue(args.Holder());
+    }
+
+    v8::Handle<v8::Value> ImageView::ViewForImage(cv::Mat image)
+    {
+        NanScope();
+        
+        // Insiped by SO: http://stackoverflow.com/questions/16600735/what-is-an-internal-field-count-and-what-is-setinternalfieldcount-used-for
+        Local<Object> holder = constructor->NewInstance();
+
+        ImageView * imageView = new ImageView(image);
+        imageView->Wrap(holder);
+        NanReturnValue(holder);
     }
 }

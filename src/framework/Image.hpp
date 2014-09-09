@@ -20,6 +20,7 @@ namespace cloudcv
     
         static void Init(v8::Handle<v8::Object> exports);
         static v8::Handle<v8::Value> New(const v8::Arguments &args);
+        static v8::Handle<v8::Value> ViewForImage(cv::Mat image);
 
         static v8::Persistent<v8::Function> constructor;
     private:

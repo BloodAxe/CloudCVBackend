@@ -89,7 +89,7 @@ namespace cloudcv
 
     }
 
-    cv::Size aspectRatio(const cv::Size& frameSize)
+    cv::Size ComputeImageAspectRatio(const cv::Size& frameSize)
     {
         int d = gcd(frameSize.width, frameSize.height);
         return cv::Size(frameSize.width / d, frameSize.height / d);
@@ -98,7 +98,7 @@ namespace cloudcv
     /**
     * Root mean square (RMS) contrast
     */
-    double rmsContrast(cv::Mat_<unsigned char> grayscale)
+    double ComputeRmsContrast(cv::Mat_<unsigned char> grayscale)
     {
         cv::Mat I;
         grayscale.convertTo(I, CV_32F, 1.0f / 255.0f);
@@ -111,7 +111,7 @@ namespace cloudcv
         return sqrt(sum / totalPixels);
     }
 
-    void buildFromImage(cv::Mat input, AnalyzeResult& value)
+    void AnalyzeImage(cv::Mat input, AnalyzeResult& value)
     {
         value = AnalyzeResult();
 
@@ -119,11 +119,12 @@ namespace cloudcv
         colorsExtractor.process(input);
 
         value.frameSize = input.size();
-        value.aspectRatio = aspectRatio(input.size());
+        value.aspectRatio = ComputeImageAspectRatio(input.size());
 
         value.intensity = distribution(input);
-        value.rmsContrast = rmsContrast(input);
-
+        value.rmsContrast = ComputeRmsContrast(input);
+        
+        value.quantizedColors = colorsExtractor.getImage();
         value.dominantColors = colorsExtractor.mainColors;
 
         value.uniqieColors = colorsExtractor.getUniqueColors();

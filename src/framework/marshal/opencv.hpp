@@ -11,12 +11,13 @@ V8Result MarshalFromNative(const cv::Point2f& value);
 V8Result MarshalFromNative(const cv::Rect& value);
 V8Result MarshalFromNative(const cv::Scalar& value);
 V8Result MarshalFromNative(const cv::Matx33f& value);
+V8Result MarshalFromNative(const cv::Mat& value);
 
 template<typename _Tp, int cn>
 V8Result MarshalFromNative(const cv::Vec<_Tp, cn>& value)
 {
 	using namespace v8;
-	HandleScope scope;
+	NanScope();
 
 	Handle<Array> result = Array::New(cn);
 
@@ -25,7 +26,7 @@ V8Result MarshalFromNative(const cv::Vec<_Tp, cn>& value)
 		result->Set(i, MarshalFromNative(value.val[i]));
 	}
 
-	return scope.Close(result);
+	NanReturnValue(result);
 }
 
 bool MarshalToNativeImage(V8Result buffer, cv::Mat& frame, int flags);
