@@ -7,6 +7,11 @@
 
 namespace cloudcv
 {
+    /**
+     * @brief A wrapper around cv::Mat type that is returned in callbacks to Node.js.
+     * @details This class provide basic methods to get image dimension and type, but 
+     *          it's goal to allow 'export' binary data to Jpg/Png/Webp/Json formats.
+     */
 	class ImageView : node::ObjectWrap
     {
     public:
@@ -19,9 +24,13 @@ namespace cloudcv
         static v8::Persistent<v8::Function> constructor;
     private:
 
-        static NAN_METHOD(SaveAsJpeg);
-        static NAN_METHOD(SaveAsPng);
-        static NAN_METHOD(GetBuffer);
+        static NAN_METHOD(AsJpegStream);
+        static NAN_METHOD(AsJpegDataUri);
+
+        static NAN_METHOD(AsPngStream);
+        static NAN_METHOD(AsPngDataUri);
+
+        static NAN_METHOD(AsObject);
 
         static NAN_METHOD(Width);
         static NAN_METHOD(Height);
