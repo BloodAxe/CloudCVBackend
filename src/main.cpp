@@ -2,15 +2,11 @@
 #include <v8.h>
 
 #include "framework/Image.hpp"
-#include "modules/analyze/binding.hpp"
-#include "modules/buildInformation/buildInformation.hpp"
-#include "modules/cameraCalibration/CameraCalibrationBinding.hpp"
+#include "cloudcv.hpp"
 
 using namespace v8;
 using namespace node;
 using namespace cloudcv;
-
-
 
 void RegisterModule(Handle<Object> target)
 {

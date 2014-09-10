@@ -1,4 +1,4 @@
-#include "modules/analyze/binding.hpp"
+#include <cloudcv.hpp>
 #include "modules/analyze/analyze.hpp"
 
 #include <framework/marshal/marshal.hpp>

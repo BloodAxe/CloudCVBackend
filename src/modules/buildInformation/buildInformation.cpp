@@ -1,4 +1,4 @@
-#include "buildInformation.hpp"
+#include <cloudcv.hpp>
 #include <framework/marshal/marshal.hpp>
 
 namespace cloudcv 

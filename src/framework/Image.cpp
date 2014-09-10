@@ -1,5 +1,5 @@
 #include "Image.hpp"
-#include "framework/marshal/stl.hpp"
+#include "framework/marshal/marshal.hpp"
 #include "framework/NanCheck.hpp"
 #include "framework/Job.hpp"
 #include "framework/marshal/node_object_builder.hpp"
@@ -83,7 +83,7 @@ namespace cloudcv
 
         static void Base64Encode(const std::vector<uint8_t>& data, std::ostringstream& encoded_data)
         {
-            static int mod_table[] = { 0, 2, 1 };
+            static size_t mod_table[] = { 0, 2, 1 };
             static char encoding_table[] = {
                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -96,10 +96,10 @@ namespace cloudcv
             };
 
             size_t input_length = data.size();
-            size_t output_length = 4 * ((input_length + 2) / 3);
+            //size_t output_length = 4 * ((input_length + 2) / 3);
             //encoded_data.resize(output_length);
 
-            for (size_t i = 0, j = 0; i < input_length;)
+            for (size_t i = 0; i < input_length;)
             {
                 uint32_t octet_a = i < input_length ? data[i++] : 0;
                 uint32_t octet_b = i < input_length ? data[i++] : 0;
@@ -113,6 +113,7 @@ namespace cloudcv
                     << encoding_table[(triple >> 0 * 6) & 0x3F];
             }
 
+            // Extra padding
             for (size_t i = 0; i < mod_table[input_length % 3]; i++)
             {
                 encoded_data << '=';

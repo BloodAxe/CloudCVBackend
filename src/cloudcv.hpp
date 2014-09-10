@@ -1,15 +1,13 @@
 #pragma once
 
-#include <node.h>
 #include <v8.h>
 #include <nan.h>
 
-namespace cloudcv 
+namespace cloudcv
 {
+    NAN_METHOD(version);
+    NAN_METHOD(buildInformation);
+    NAN_METHOD(analyzeImage);
     NAN_METHOD(calibrationPatternDetect);
-
-    /**
-     * function calibrateCamera(points[][], callback(error, result))); 
-     */
     NAN_METHOD(calibrateCamera);
 }
