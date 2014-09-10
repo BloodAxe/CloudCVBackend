@@ -186,14 +186,14 @@ NanMethodArgumentHeler& NanArgStringEnum<T>::Bind(T& value)
 }
 
 template <typename T>
-    bool NanArgStringEnum<T>::tryMatchStringEnum(const char * key, T& outValue) const
+bool NanArgStringEnum<T>::tryMatchStringEnum(const char * key, T& outValue) const
+{
+    auto it = m_possibleValues.find(key);
+    if (it != m_possibleValues.end())
     {
-        auto it = m_possibleValues.find(key);
-        if (it != m_possibleValues.end())
-        {
-            outValue = it->second;
-            return true;
-        }
-
-        return false;
+        outValue = it->second;
+        return true;
     }
+
+    return false;
+}

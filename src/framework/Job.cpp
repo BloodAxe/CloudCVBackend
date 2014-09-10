@@ -29,7 +29,7 @@ namespace cloudcv {
 	{
 		NanScope();
 
-		Local<Value> argv[] = {
+		v8::Local<v8::Value> argv[] = {
 			NanNull(),
 			CreateCallbackResult()
 		};

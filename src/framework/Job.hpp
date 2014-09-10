@@ -3,11 +3,11 @@
 #include <v8.h>
 #include <nan.h>
 
-using namespace v8;
-using namespace node;
-
 namespace cloudcv {
 
+    /**
+     * @brief A base class for asynchronous task running in worker pool
+     */
     class Job : public NanAsyncWorker
     {
     public:
@@ -21,8 +21,7 @@ namespace cloudcv {
     protected:
         virtual void ExecuteNativeCode() = 0;
 
-		virtual Local<Value> CreateCallbackResult() = 0;
-
+		virtual v8::Local<v8::Value> CreateCallbackResult() = 0;
 
     private:
     };
