@@ -18,65 +18,65 @@ class ArgumentMismatchException
 {
 public:
 
-	ArgumentMismatchException(const std::string msg)
-		: m_what(msg)
-	{
-	}
+    ArgumentMismatchException(const std::string& msg)
+        : mMessage(msg)
+    {
+    }
 
-	ArgumentMismatchException(int actual, int expected)
-		: m_what("Invalid number of arguments passed to a function")
-	{
-	}
+    ArgumentMismatchException(int actual, int expected)
+        : mMessage("Invalid number of arguments passed to a function")
+    {
+    }
 
-	ArgumentMismatchException(int actual, const std::initializer_list<int>& expected)
-		: m_what("Invalid number of arguments passed to a function")
-	{
-	}
+    ArgumentMismatchException(int actual, const std::initializer_list<int>& expected)
+        : mMessage("Invalid number of arguments passed to a function")
+    {
+    }
 
-	virtual const char * what() const
-	{
-		return m_what.c_str();
-	}
+    virtual const char * what() const
+    {
+        return mMessage.c_str();
+    }
 
-	virtual ~ArgumentMismatchException()
-	{
-	}
+    virtual ~ArgumentMismatchException()
+    {
+    }
 
 private:
-	std::string m_what;
+    std::string mMessage;
 };
 
 typedef std::function<bool(const v8::Arguments&) > InitFunction;
 
-class NanMethodArgumentAdaptor;
-class NanMethodArgumentHeler;
+class NanMethodArgBinding;
+class NanCheckArguments;
 
 template <typename EnumType>
 class NanArgStringEnum;
 
 //////////////////////////////////////////////////////////////////////////
 
-class NanMethodArgumentHeler
+class NanCheckArguments
 {
 public:
-	NanMethodArgumentHeler(const v8::Arguments& args);
-	NanMethodArgumentHeler(const v8::Arguments& args, InitFunction fn);
+    NanCheckArguments(const v8::Arguments& args);
+    NanCheckArguments(const v8::Arguments& args, InitFunction fn);
 
-	NanMethodArgumentHeler& ArgumentsCount(int count);
-	NanMethodArgumentHeler& ArgumentsCount(int argsCount1, int argsCount2);
+    NanCheckArguments& ArgumentsCount(int count);
+    NanCheckArguments& ArgumentsCount(int argsCount1, int argsCount2);
 
-	NanMethodArgumentAdaptor Argument(int index);
+    NanMethodArgBinding Argument(int index);
 
-	/**
-	 * Unwind all fluent calls
-	 */
-	operator bool() const;
+    /**
+     * Unwind all fluent calls
+     */
+    operator bool() const;
 
-	NanMethodArgumentHeler& AddAndClause(InitFunction rightCondition);
+    NanCheckArguments& AddAndClause(InitFunction rightCondition);
 
 private:
-	const v8::Arguments& m_args;
-	InitFunction         m_init;
+    const v8::Arguments& m_args;
+    InitFunction         m_init;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,80 +87,83 @@ class NanArgStringEnum
 public:
     explicit NanArgStringEnum(
         std::initializer_list< std::pair<const char*, EnumType> > possibleValues, 
-        NanMethodArgumentAdaptor& owner,
+        NanMethodArgBinding& owner,
         int argIndex);
 
-    NanMethodArgumentHeler& Bind(EnumType& value);
+    NanCheckArguments& Bind(EnumType& value);
 protected:
 
-    bool tryMatchStringEnum(const char * key, EnumType& outValue) const;
+    bool TryMatchStringEnum(const char * key, EnumType& outValue) const;
 
 private:
-    std::map<const char*, EnumType>     m_possibleValues;
-    NanMethodArgumentAdaptor&           m_owner;
-    int                                 m_argIndex;
+    std::map<const char*, EnumType>     mPossibleValues;
+    NanMethodArgBinding&                mOwner;
+    int                                 mArgIndex;
 };
 
 //////////////////////////////////////////////////////////////////////////
 
-class NanMethodArgumentAdaptor
+/**
+ * @brief This class wraps particular positional argument 
+ */
+class NanMethodArgBinding
 {
 public:
 
     template <typename EnumType>
     friend class NanArgStringEnum;
 
-	NanMethodArgumentAdaptor(int index, NanMethodArgumentHeler& parent);
+    NanMethodArgBinding(int index, NanCheckArguments& parent);
 
-	NanMethodArgumentAdaptor& IsBuffer();
-	NanMethodArgumentAdaptor& IsFunction();
-    NanMethodArgumentAdaptor& IsString();
-    NanMethodArgumentAdaptor& NotNull();
+    NanMethodArgBinding& IsBuffer();
+    NanMethodArgBinding& IsFunction();
+    NanMethodArgBinding& IsString();
+    NanMethodArgBinding& NotNull();
 
     template <typename T>
     NanArgStringEnum<T> StringEnum(std::initializer_list< std::pair<const char*, T> > possibleValues);
 
-	template <typename T>
-	NanMethodArgumentHeler& Bind(v8::Local<T>& value);
+    template <typename T>
+    NanCheckArguments& Bind(v8::Local<T>& value);
 
     template <typename T>
-	NanMethodArgumentHeler& Bind(T& value);
+    NanCheckArguments& Bind(T& value);
 
 private:
-	int						 m_index;
-	NanMethodArgumentHeler&  m_parent;
+    int                 mArgIndex;
+    NanCheckArguments&  mParent;
 };
 
 //////////////////////////////////////////////////////////////////////////
 
-NanMethodArgumentHeler NanCheck(const v8::Arguments& args);
+NanCheckArguments NanCheck(const v8::Arguments& args);
 
 //////////////////////////////////////////////////////////////////////////
 // Template functions implementation
 
 template <typename T>
-NanMethodArgumentHeler& NanMethodArgumentAdaptor::Bind(v8::Local<T>& value)
+NanCheckArguments& NanMethodArgBinding::Bind(v8::Local<T>& value)
 {
-	return m_parent.AddAndClause([this, &value](const v8::Arguments& args) {
-		value = args[m_index].As<T>();
-		return true;
-	});
+    return mParent.AddAndClause([this, &value](const v8::Arguments& args) {
+        value = args[mArgIndex].As<T>();
+        return true;
+    });
 }
 
 
 template <typename T>
-NanMethodArgumentHeler& NanMethodArgumentAdaptor::Bind(T& value)
+NanCheckArguments& NanMethodArgBinding::Bind(T& value)
 {
-	return m_parent.AddAndClause([this, &value](const v8::Arguments& args) {
-		MarshalToNative(args[m_index], value);
-		return true;
-	});
+    return mParent.AddAndClause([this, &value](const v8::Arguments& args) {
+        MarshalToNative(args[mArgIndex], value);
+        return true;
+    });
 }
 
 template <typename T>
-NanArgStringEnum<T> NanMethodArgumentAdaptor::StringEnum(std::initializer_list< std::pair<const char*, T> > possibleValues)
+NanArgStringEnum<T> NanMethodArgBinding::StringEnum(std::initializer_list< std::pair<const char*, T> > possibleValues)
 {
-    return std::move(NanArgStringEnum<T>(possibleValues, IsString(), m_index));
+    return std::move(NanArgStringEnum<T>(possibleValues, IsString(), mArgIndex));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -168,28 +171,28 @@ NanArgStringEnum<T> NanMethodArgumentAdaptor::StringEnum(std::initializer_list< 
 template <typename T>
 NanArgStringEnum<T>::NanArgStringEnum(
     std::initializer_list< std::pair<const char*, T> > possibleValues, 
-    NanMethodArgumentAdaptor& owner, int argIndex)
-: m_possibleValues(possibleValues.begin(), possibleValues.end())
-, m_owner(owner)
-, m_argIndex(argIndex)
+    NanMethodArgBinding& owner, int argIndex)
+: mPossibleValues(possibleValues.begin(), possibleValues.end())
+, mOwner(owner)
+, mArgIndex(argIndex)
 {
 }
 
 template <typename T>
-NanMethodArgumentHeler& NanArgStringEnum<T>::Bind(T& value)
+NanCheckArguments& NanArgStringEnum<T>::Bind(T& value)
 {
-    return m_owner.m_parent.AddAndClause([this, &value](const v8::Arguments& args) {
+    return mOwner.mParent.AddAndClause([this, &value](const v8::Arguments& args) {
         std::string key;
-        MarshalToNative(args[m_argIndex], key);
-        return tryMatchStringEnum(key.c_str(), value);
+        MarshalToNative(args[mArgIndex], key);
+        return TryMatchStringEnum(key.c_str(), value);
     });
 }
 
 template <typename T>
-bool NanArgStringEnum<T>::tryMatchStringEnum(const char * key, T& outValue) const
+bool NanArgStringEnum<T>::TryMatchStringEnum(const char * key, T& outValue) const
 {
-    auto it = m_possibleValues.find(key);
-    if (it != m_possibleValues.end())
+    auto it = mPossibleValues.find(key);
+    if (it != mPossibleValues.end())
     {
         outValue = it->second;
         return true;

@@ -2,81 +2,81 @@
 
 typedef std::function<bool(const v8::Arguments&) > InitFunction;
 
-class NanMethodArgumentAdaptor;
-class NanMethodArgumentHeler;
+class NanMethodArgBinding;
+class NanCheckArguments;
 
-NanMethodArgumentAdaptor::NanMethodArgumentAdaptor(int index, NanMethodArgumentHeler& parent)
-	: m_index(index)
-	, m_parent(parent)
+NanMethodArgBinding::NanMethodArgBinding(int index, NanCheckArguments& parent)
+	: mArgIndex(index)
+	, mParent(parent)
 {
 }
 
-NanMethodArgumentAdaptor& NanMethodArgumentAdaptor::IsBuffer()
+NanMethodArgBinding& NanMethodArgBinding::IsBuffer()
 {
 	auto bind = [this](const v8::Arguments& args) 
 	{ 
-		if (!node::Buffer::HasInstance(args[m_index]))
-			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(m_index) + " violates IsBuffer check");
+		if (!node::Buffer::HasInstance(args[mArgIndex]))
+			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsBuffer check");
 		return true;
 	};
 
-	m_parent.AddAndClause(bind);
+	mParent.AddAndClause(bind);
 	return * this;
 }
 
-NanMethodArgumentAdaptor& NanMethodArgumentAdaptor::IsFunction()
+NanMethodArgBinding& NanMethodArgBinding::IsFunction()
 {
 	auto bind = [this](const v8::Arguments& args) 
 	{ 
-		if (!args[m_index]->IsFunction())
-			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(m_index) + " violates IsFunction check");
+		if (!args[mArgIndex]->IsFunction())
+			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsFunction check");
 
 		return true;
 	};
-	m_parent.AddAndClause(bind);
+	mParent.AddAndClause(bind);
 	return *this;
 }
 
-NanMethodArgumentAdaptor& NanMethodArgumentAdaptor::IsString()
+NanMethodArgBinding& NanMethodArgBinding::IsString()
 {
     auto bind = [this](const v8::Arguments& args)
     {
-        if (!args[m_index]->IsString() && !args[m_index]->IsStringObject())
-            throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(m_index) + " violates IsString check");
+        if (!args[mArgIndex]->IsString() && !args[mArgIndex]->IsStringObject())
+            throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsString check");
 
         return true;
     };
-    m_parent.AddAndClause(bind);
+    mParent.AddAndClause(bind);
     return *this;
 }
 
-NanMethodArgumentAdaptor& NanMethodArgumentAdaptor::NotNull()
+NanMethodArgBinding& NanMethodArgBinding::NotNull()
 {
 	auto bind = [this](const v8::Arguments& args) 
 	{ 
-		if (args[m_index]->IsNull())
-			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(m_index) + " violates NotNull check");
+		if (args[mArgIndex]->IsNull())
+			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates NotNull check");
 
 		return true;
 	};
-	m_parent.AddAndClause(bind);
+	mParent.AddAndClause(bind);
 	return *this;
 }
 
-NanMethodArgumentHeler::NanMethodArgumentHeler(const v8::Arguments& args)
+NanCheckArguments::NanCheckArguments(const v8::Arguments& args)
 : m_args(args)
 , m_init([](const v8::Arguments& args) { return true; })
 {
 }
 
-NanMethodArgumentHeler::NanMethodArgumentHeler(const v8::Arguments& args, InitFunction fn)
+NanCheckArguments::NanCheckArguments(const v8::Arguments& args, InitFunction fn)
 : m_args(args)
 , m_init(fn)
 {
 }
 
 
-NanMethodArgumentHeler& NanMethodArgumentHeler::ArgumentsCount(int count)
+NanCheckArguments& NanCheckArguments::ArgumentsCount(int count)
 {
 	return AddAndClause([count](const v8::Arguments& args) 
 	{ 
@@ -87,7 +87,7 @@ NanMethodArgumentHeler& NanMethodArgumentHeler::ArgumentsCount(int count)
 	});
 }
 
-NanMethodArgumentHeler& NanMethodArgumentHeler::ArgumentsCount(int argsCount1, int argsCount2)
+NanCheckArguments& NanCheckArguments::ArgumentsCount(int argsCount1, int argsCount2)
 {
 	return AddAndClause([argsCount1, argsCount2](const v8::Arguments& args)
 	{
@@ -98,20 +98,20 @@ NanMethodArgumentHeler& NanMethodArgumentHeler::ArgumentsCount(int argsCount1, i
 	});
 }
 
-NanMethodArgumentAdaptor NanMethodArgumentHeler::Argument(int index)
+NanMethodArgBinding NanCheckArguments::Argument(int index)
 {
-	return NanMethodArgumentAdaptor(index, *this);
+	return NanMethodArgBinding(index, *this);
 }
 
 /**
  * Unwind all fluent calls
  */
-NanMethodArgumentHeler::operator bool() const
+NanCheckArguments::operator bool() const
 {
 	return m_init(m_args);
 }
 
-NanMethodArgumentHeler& NanMethodArgumentHeler::AddAndClause(InitFunction rightCondition)
+NanCheckArguments& NanCheckArguments::AddAndClause(InitFunction rightCondition)
 {
 	InitFunction prevInit = m_init;
 	InitFunction newInit = [prevInit, rightCondition](const v8::Arguments& args) {
@@ -122,7 +122,7 @@ NanMethodArgumentHeler& NanMethodArgumentHeler::AddAndClause(InitFunction rightC
 }
 
 
-NanMethodArgumentHeler NanCheck(const v8::Arguments& args)
+NanCheckArguments NanCheck(const v8::Arguments& args)
 {
-	return std::move(NanMethodArgumentHeler(args));
+	return std::move(NanCheckArguments(args));
 }
