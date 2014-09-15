@@ -1,6 +1,6 @@
 #include "NanCheck.hpp"
 
-typedef std::function<bool(const v8::Arguments&) > InitFunction;
+typedef std::function<bool(_NAN_METHOD_ARGS_TYPE) > InitFunction;
 
 class NanMethodArgBinding;
 class NanCheckArguments;
@@ -13,7 +13,7 @@ NanMethodArgBinding::NanMethodArgBinding(int index, NanCheckArguments& parent)
 
 NanMethodArgBinding& NanMethodArgBinding::IsBuffer()
 {
-	auto bind = [this](const v8::Arguments& args) 
+	auto bind = [this](_NAN_METHOD_ARGS_TYPE args) 
 	{ 
 		if (!node::Buffer::HasInstance(args[mArgIndex]))
 			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsBuffer check");
@@ -26,7 +26,7 @@ NanMethodArgBinding& NanMethodArgBinding::IsBuffer()
 
 NanMethodArgBinding& NanMethodArgBinding::IsFunction()
 {
-	auto bind = [this](const v8::Arguments& args) 
+	auto bind = [this](_NAN_METHOD_ARGS_TYPE args) 
 	{ 
 		if (!args[mArgIndex]->IsFunction())
 			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsFunction check");
@@ -39,7 +39,7 @@ NanMethodArgBinding& NanMethodArgBinding::IsFunction()
 
 NanMethodArgBinding& NanMethodArgBinding::IsString()
 {
-    auto bind = [this](const v8::Arguments& args)
+    auto bind = [this](_NAN_METHOD_ARGS_TYPE args)
     {
         if (!args[mArgIndex]->IsString() && !args[mArgIndex]->IsStringObject())
             throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsString check");
@@ -52,7 +52,7 @@ NanMethodArgBinding& NanMethodArgBinding::IsString()
 
 NanMethodArgBinding& NanMethodArgBinding::NotNull()
 {
-	auto bind = [this](const v8::Arguments& args) 
+	auto bind = [this](_NAN_METHOD_ARGS_TYPE args) 
 	{ 
 		if (args[mArgIndex]->IsNull())
 			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates NotNull check");
@@ -63,13 +63,13 @@ NanMethodArgBinding& NanMethodArgBinding::NotNull()
 	return *this;
 }
 
-NanCheckArguments::NanCheckArguments(const v8::Arguments& args)
+NanCheckArguments::NanCheckArguments(_NAN_METHOD_ARGS_TYPE args)
 : m_args(args)
-, m_init([](const v8::Arguments& args) { return true; })
+, m_init([](_NAN_METHOD_ARGS_TYPE args) { return true; })
 {
 }
 
-NanCheckArguments::NanCheckArguments(const v8::Arguments& args, InitFunction fn)
+NanCheckArguments::NanCheckArguments(_NAN_METHOD_ARGS_TYPE args, InitFunction fn)
 : m_args(args)
 , m_init(fn)
 {
@@ -78,7 +78,7 @@ NanCheckArguments::NanCheckArguments(const v8::Arguments& args, InitFunction fn)
 
 NanCheckArguments& NanCheckArguments::ArgumentsCount(int count)
 {
-	return AddAndClause([count](const v8::Arguments& args) 
+	return AddAndClause([count](_NAN_METHOD_ARGS_TYPE args) 
 	{ 
 		if (args.Length() != count)
 			throw ArgumentMismatchException(args.Length(), count); 
@@ -89,7 +89,7 @@ NanCheckArguments& NanCheckArguments::ArgumentsCount(int count)
 
 NanCheckArguments& NanCheckArguments::ArgumentsCount(int argsCount1, int argsCount2)
 {
-	return AddAndClause([argsCount1, argsCount2](const v8::Arguments& args)
+	return AddAndClause([argsCount1, argsCount2](_NAN_METHOD_ARGS_TYPE args)
 	{
 		if (args.Length() != argsCount1 || args.Length() != argsCount2)
 			throw ArgumentMismatchException(args.Length(), { argsCount1, argsCount2 });
@@ -114,7 +114,7 @@ NanCheckArguments::operator bool() const
 NanCheckArguments& NanCheckArguments::AddAndClause(InitFunction rightCondition)
 {
 	InitFunction prevInit = m_init;
-	InitFunction newInit = [prevInit, rightCondition](const v8::Arguments& args) {
+	InitFunction newInit = [prevInit, rightCondition](_NAN_METHOD_ARGS_TYPE args) {
 		return prevInit(args) && rightCondition(args);
 	};
 	m_init = newInit;
@@ -122,7 +122,7 @@ NanCheckArguments& NanCheckArguments::AddAndClause(InitFunction rightCondition)
 }
 
 
-NanCheckArguments NanCheck(const v8::Arguments& args)
+NanCheckArguments NanCheck(_NAN_METHOD_ARGS_TYPE args)
 {
 	return std::move(NanCheckArguments(args));
 }

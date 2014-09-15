@@ -42,6 +42,6 @@ private:
 template <typename Val>
 NodeObjectProperty& NodeObjectProperty::operator=(const Val& val)
 {
-	mParentObject->Set(NanNew(mPropertyName.c_str()), MarshalFromNative(val));
+	mParentObject->Set(NanNew<v8::String>(mPropertyName.c_str()), MarshalFromNative(val));
 	return *this;
 }

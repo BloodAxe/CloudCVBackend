@@ -12,14 +12,14 @@ namespace cloudcv
      * @details This class provide basic methods to get image dimension and type, but 
      *          it's goal to allow 'export' binary data to Jpg/Png/Webp/Json formats.
      */
-	class ImageView : node::ObjectWrap
+	class ImageView : public node::ObjectWrap
     {
     public:
         explicit ImageView(const cv::Mat& image);
         ~ImageView() {}
     
         static void Init(v8::Handle<v8::Object> exports);
-        static v8::Handle<v8::Value> New(const v8::Arguments &args);
+        static v8::Handle<v8::Value> New(_NAN_METHOD_ARGS_TYPE args);
         static v8::Handle<v8::Value> ViewForImage(cv::Mat image);
 
         static v8::Persistent<v8::Function> constructor;

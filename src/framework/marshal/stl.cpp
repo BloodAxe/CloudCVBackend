@@ -3,12 +3,13 @@ using namespace v8;
 
 V8Result MarshalFromNative(const std::string& value)
 {
-	HandleScope scope;
-	NanReturnValue(String::New(value.c_str(), value.size()));
+	NanScope();
+	return NanNew<String>(value.c_str());
 }
 
 void MarshalToNative(V8Result inVal, std::string& outVal)
 {
-    v8::String::AsciiValue string(inVal);
-    outVal = std::string(string.operator*(), string.length());
+    NanAsciiString cStr = NanAsciiString(inVal);
+
+    outVal = std::string(*cStr, cStr.Size());
 }

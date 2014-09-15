@@ -74,9 +74,9 @@ namespace cloudcv
         {
             NanScope();
             if (mReturnDataUri)
-                NanReturnValue(MarshalFromNative(mDataUriString.str()));
+                return (MarshalFromNative(mDataUriString.str()));
             else
-                NanReturnValue(MarshalFromNative(mEncodedData));
+                return (MarshalFromNative(mEncodedData));
         }
 
     private:
@@ -136,14 +136,14 @@ namespace cloudcv
 
     }
 
-    Handle<Value> ImageView::Width(const Arguments& args)
+    NAN_METHOD(ImageView::Width)
     {
         SETUP_FUNCTION(ImageView);
         int width = self->mImage.cols;
         NanReturnValue(NanNew<v8::Integer>(width));
     }
 
-    Handle<Value> ImageView::Height(const Arguments& args)
+    NAN_METHOD(ImageView::Height)
     {
         SETUP_FUNCTION(ImageView);
         int height = self->mImage.rows;
@@ -339,16 +339,16 @@ namespace cloudcv
         NODE_SET_PROTOTYPE_METHOD(tpl, "asObject", ImageView::AsObject);
 
         constructor = Persistent<Function>::New(tpl->GetFunction());
-        exports->Set(String::New("ImageView"), constructor);
+        exports->Set(NanNew<String>("ImageView"), constructor);
         std::cout << "ImageView::Init finished" << std::endl;
     }
 
-    Handle<Value> ImageView::New(const Arguments &args)
+    Handle<Value> ImageView::New(_NAN_METHOD_ARGS_TYPE args)
     {
         NanScope();
 
         if (args.This()->InternalFieldCount() == 0)
-            return v8::ThrowException(v8::Exception::TypeError(v8::String::New("Cannot instantiate without new")));
+            return v8::ThrowException(v8::Exception::TypeError(NanNew<String>("Cannot instantiate without new")));
 
         std::string filename;
         MarshalToNative(args[0], filename);

@@ -19,14 +19,14 @@ V8Result MarshalFromNative(const cv::Vec<_Tp, cn>& value)
 	using namespace v8;
 	NanScope();
 
-	Handle<Array> result = Array::New(cn);
+	Local<Array> result = NanNew<Array>(cn);
 
 	for (size_t i = 0; i < cn; i++)
 	{
 		result->Set(i, MarshalFromNative(value.val[i]));
 	}
 
-	NanReturnValue(result);
+	return result;
 }
 
 bool MarshalToNativeImage(V8Result buffer, cv::Mat& frame, int flags);

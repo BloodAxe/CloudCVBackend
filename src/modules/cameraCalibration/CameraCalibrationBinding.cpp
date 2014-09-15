@@ -319,7 +319,7 @@ namespace cloudcv
                 .Argument(3).StringEnum<PatternType>({ 
                     { "CHESSBOARD",     PatternType::CHESSBOARD }, 
                     { "CIRCLES_GRID",   PatternType::CIRCLES_GRID }, 
-                    { "ACIRCLES_GRID",  PatternType::ASCIRCLES_GRID } }).Bind(pattern)
+                    { "ACIRCLES_GRID",  PatternType::ACIRCLES_GRID } }).Bind(pattern)
                 .Argument(4).IsFunction().Bind(callback))
             {
                 // The task holds our custom status information for this asynchronous call,

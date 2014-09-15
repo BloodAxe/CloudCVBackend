@@ -7,45 +7,45 @@ using namespace v8;
 V8Result MarshalFromNative(const cv::Size& value)
 {
 	NanScope();
-	Local<Object> structure = Object::New();
-	structure->Set(String::NewSymbol("width"), MarshalFromNative(value.width));
-	structure->Set(String::NewSymbol("height"), MarshalFromNative(value.height));
-	NanReturnValue(structure);
+	Local<Object> structure = NanNew<Object>();
+	structure->Set(NanNew<String>("width"),    MarshalFromNative(value.width));
+	structure->Set(NanNew<String>("height"),   MarshalFromNative(value.height));
+	return (structure);
 }
 
 V8Result MarshalFromNative(const cv::Rect& value)
 {
 	NanScope();
-	Local<Object> structure = Object::New();
-	structure->Set(String::NewSymbol("x"), MarshalFromNative(value.x));
-	structure->Set(String::NewSymbol("y"), MarshalFromNative(value.y));
-	structure->Set(String::NewSymbol("width"), MarshalFromNative(value.width));
-	structure->Set(String::NewSymbol("height"), MarshalFromNative(value.height));
-	NanReturnValue(structure);
+	Local<Object> structure = NanNew<Object>();
+	structure->Set(NanNew<String>("x"),        MarshalFromNative(value.x));
+	structure->Set(NanNew<String>("y"),        MarshalFromNative(value.y));
+	structure->Set(NanNew<String>("width"),    MarshalFromNative(value.width));
+	structure->Set(NanNew<String>("height"),   MarshalFromNative(value.height));
+	return (structure);
 }
 
 V8Result MarshalFromNative(const cv::Point& value)
 {
 	NanScope();
-	Local<Object> structure = Object::New();
-	structure->Set(String::NewSymbol("x"), MarshalFromNative(value.x));
-	structure->Set(String::NewSymbol("y"), MarshalFromNative(value.y));
-	NanReturnValue(structure);
+	Local<Object> structure = NanNew<Object>();
+	structure->Set(NanNew<String>("x"), MarshalFromNative(value.x));
+	structure->Set(NanNew<String>("y"), MarshalFromNative(value.y));
+	return (structure);
 }
 
 V8Result MarshalFromNative(const cv::Point2f& value)
 {
 	NanScope();
-	Local<Object> structure = Object::New();
-	structure->Set(String::NewSymbol("x"), MarshalFromNative(value.x));
-	structure->Set(String::NewSymbol("y"), MarshalFromNative(value.y));
-	NanReturnValue(structure);
+	Local<Object> structure = NanNew<Object>();
+	structure->Set(NanNew<String>("x"), MarshalFromNative(value.x));
+	structure->Set(NanNew<String>("y"), MarshalFromNative(value.y));
+	return (structure);
 }
 
 V8Result MarshalFromNative(const cv::Matx33f& value)
 {
     NanScope();
-    Handle<Array> result = Array::New(9);
+    Handle<Array> result = NanNew<Array>(9);
     
     result->Set(0, MarshalFromNative( value(0,0) ));
     result->Set(1, MarshalFromNative( value(0,1) ));
@@ -59,26 +59,26 @@ V8Result MarshalFromNative(const cv::Matx33f& value)
     result->Set(7, MarshalFromNative( value(2,1) ));
     result->Set(8, MarshalFromNative( value(2,2) ));
 
-    NanReturnValue(result);
+    return (result);
 }
 
 V8Result MarshalFromNative(const cv::Scalar& value)
 {
     NanScope();
-    Handle<Array> result = Array::New(4);
+    Local<Array> result = NanNew<Array>(4);
 
 	for (size_t i = 0; i < 4; i++) 
 	{
 		result->Set(i, MarshalFromNative(value.val[i]));
 	}
 
-	NanReturnValue(result);
+	return (result);
 }
 
 V8Result MarshalFromNative(const cv::Mat& value)
 {
     NanScope();
-    NanReturnValue(cloudcv::ImageView::ViewForImage(value));
+    return (cloudcv::ImageView::ViewForImage(value));
 }
 
 bool MarshalToNativeImage(V8Result imageBuffer, cv::Mat& frame, int flags)
@@ -94,8 +94,8 @@ bool MarshalToNativeImage(V8Result imageBuffer, cv::Mat& frame, int flags)
 
 bool MarshalToNative(V8Result obj, cv::Point2f& value)
 {
-    value.x = static_cast<float>(obj.As<v8::Object>()->Get(String::NewSymbol("x"))->NumberValue());
-    value.y = static_cast<float>(obj.As<v8::Object>()->Get(String::NewSymbol("y"))->NumberValue());
+    value.x = static_cast<float>(obj.As<v8::Object>()->Get(NanNew<String>("x"))->NumberValue());
+    value.y = static_cast<float>(obj.As<v8::Object>()->Get(NanNew<String>("y"))->NumberValue());
 
     return true;
 }

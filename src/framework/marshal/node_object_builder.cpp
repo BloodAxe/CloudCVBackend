@@ -21,7 +21,7 @@ NodeObjectProperty NodeObjectProperty::operator[](const std::string& propertyNam
 {
 	NanScope();
 
-	Local<Value> prop = mParentObject->Get(NanNew(mPropertyName.c_str()));
+	Local<Value> prop = mParentObject->Get(NanNew<String>(mPropertyName.c_str()));
 
 	bool propertyExistsAndIsObject = prop->IsObject();
 
@@ -30,11 +30,11 @@ NodeObjectProperty NodeObjectProperty::operator[](const std::string& propertyNam
 	if (!propertyExistsAndIsObject)
 	{
         target = NanNew<Object>();
-		mParentObject->Set(NanNew(mPropertyName.c_str()), target);
+		mParentObject->Set(NanNew<String>(mPropertyName.c_str()), target);
 	}
 	else
 	{
-		target = Local<Object>::Cast(mParentObject->Get(NanNew(mPropertyName.c_str())));
+		target = Local<Object>::Cast(mParentObject->Get(NanNew<String>(mPropertyName.c_str())));
 	}
 
 	return NodeObjectProperty(target, propertyName);

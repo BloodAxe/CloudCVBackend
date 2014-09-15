@@ -46,7 +46,7 @@ private:
     std::string mMessage;
 };
 
-typedef std::function<bool(const v8::Arguments&) > InitFunction;
+typedef std::function<bool(_NAN_METHOD_ARGS_TYPE) > InitFunction;
 
 class NanMethodArgBinding;
 class NanCheckArguments;
@@ -59,8 +59,8 @@ class NanArgStringEnum;
 class NanCheckArguments
 {
 public:
-    NanCheckArguments(const v8::Arguments& args);
-    NanCheckArguments(const v8::Arguments& args, InitFunction fn);
+    NanCheckArguments(_NAN_METHOD_ARGS_TYPE args);
+    NanCheckArguments(_NAN_METHOD_ARGS_TYPE args, InitFunction fn);
 
     NanCheckArguments& ArgumentsCount(int count);
     NanCheckArguments& ArgumentsCount(int argsCount1, int argsCount2);
@@ -75,7 +75,7 @@ public:
     NanCheckArguments& AddAndClause(InitFunction rightCondition);
 
 private:
-    const v8::Arguments& m_args;
+    _NAN_METHOD_ARGS_TYPE m_args;
     InitFunction         m_init;
 };
 
@@ -136,7 +136,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-NanCheckArguments NanCheck(const v8::Arguments& args);
+NanCheckArguments NanCheck(_NAN_METHOD_ARGS_TYPE args);
 
 //////////////////////////////////////////////////////////////////////////
 // Template functions implementation
@@ -144,7 +144,7 @@ NanCheckArguments NanCheck(const v8::Arguments& args);
 template <typename T>
 NanCheckArguments& NanMethodArgBinding::Bind(v8::Local<T>& value)
 {
-    return mParent.AddAndClause([this, &value](const v8::Arguments& args) {
+    return mParent.AddAndClause([this, &value](_NAN_METHOD_ARGS_TYPE args) {
         value = args[mArgIndex].As<T>();
         return true;
     });
@@ -154,7 +154,7 @@ NanCheckArguments& NanMethodArgBinding::Bind(v8::Local<T>& value)
 template <typename T>
 NanCheckArguments& NanMethodArgBinding::Bind(T& value)
 {
-    return mParent.AddAndClause([this, &value](const v8::Arguments& args) {
+    return mParent.AddAndClause([this, &value](_NAN_METHOD_ARGS_TYPE args) {
         MarshalToNative(args[mArgIndex], value);
         return true;
     });
@@ -181,7 +181,7 @@ NanArgStringEnum<T>::NanArgStringEnum(
 template <typename T>
 NanCheckArguments& NanArgStringEnum<T>::Bind(T& value)
 {
-    return mOwner.mParent.AddAndClause([this, &value](const v8::Arguments& args) {
+    return mOwner.mParent.AddAndClause([this, &value](_NAN_METHOD_ARGS_TYPE args) {
         std::string key;
         MarshalToNative(args[mArgIndex], key);
         return TryMatchStringEnum(key.c_str(), value);

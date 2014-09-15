@@ -4,32 +4,32 @@ using namespace v8;
 
 V8Result MarshalFromNative(int value)
 {
-	HandleScope scope;
-	NanReturnValue(Int32::New(value));
+	NanScope();
+	return NanNew<Int32>(value);
 }
 
 V8Result MarshalFromNative(unsigned int value)
 {
-	HandleScope scope;
-	NanReturnValue(Uint32::New(value));
+	NanScope();
+	return NanNew<Uint32>(value);
 }
 
 V8Result MarshalFromNative(float value)
 {
-	HandleScope scope;
-	NanReturnValue(Number::New(value));
+	NanScope();
+    return NanNew<Number>(value);
 }
 
 V8Result MarshalFromNative(double value)
 {
-	HandleScope scope;
-	NanReturnValue(Number::New(value));
+	NanScope();
+	return NanNew<Number>(value);
 }
 
 V8Result MarshalFromNative(const char * value)
 {
-	HandleScope scope;
-	NanReturnValue(String::New(value));
+	NanScope();
+	return NanNew<String>(value);
 }
 
 void MarshalToNative(V8Result inVal, int& outVal)
