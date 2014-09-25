@@ -4,10 +4,13 @@
 #include "framework/Job.hpp"
 #include "framework/marshal/node_object_builder.hpp"
 
+#include <node.h>
+#include <v8.h>
+
 using namespace v8;
 
 #define SETUP_FUNCTION(TYP) \
-    NanScope();      \
+    NanEscapableScope();      \
     TYP *self = ObjectWrap::Unwrap<TYP>(args.This());
 
 namespace cloudcv
@@ -72,11 +75,11 @@ namespace cloudcv
         // safe to use V8 functions again. Don't forget the HandleScope!
         virtual Local<Value> CreateCallbackResult()
         {
-            NanScope();
+            NanEscapableScope();
             if (mReturnDataUri)
-                return (MarshalFromNative(mDataUriString.str()));
+                return NanEscapeScope(MarshalFromNative(mDataUriString.str()));
             else
-                return (MarshalFromNative(mEncodedData));
+                return NanEscapeScope(MarshalFromNative(mEncodedData));
         }
 
     private:
@@ -128,7 +131,7 @@ namespace cloudcv
         std::ostringstream      mDataUriString;
     };
 
-    v8::Persistent<v8::Function> ImageView::constructor;
+    v8::Persistent<v8::FunctionTemplate> ImageView::constructor;
 
     ImageView::ImageView(const cv::Mat& image)
         : mImage(image)
@@ -319,10 +322,8 @@ namespace cloudcv
 
     void ImageView::Init(v8::Handle<v8::Object> exports)
     {
-        NanScope();
-
         //Class
-        v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(ImageView::New);
+        v8::Local<v8::FunctionTemplate> tpl = NanNew<FunctionTemplate>(ImageView::New);
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
         tpl->SetClassName(NanNew("ImageView"));
 
@@ -338,17 +339,19 @@ namespace cloudcv
         NODE_SET_PROTOTYPE_METHOD(tpl, "asPngDataUri", ImageView::AsPngDataUri);
         NODE_SET_PROTOTYPE_METHOD(tpl, "asObject", ImageView::AsObject);
 
-        constructor = Persistent<Function>::New(tpl->GetFunction());
-        exports->Set(NanNew<String>("ImageView"), constructor);
-        std::cout << "ImageView::Init finished" << std::endl;
+        NanAssignPersistent(constructor, tpl);
+        //constructor = Persistent<Function>::New();
+        exports->Set(NanNew<String>("ImageView"), NanNew<FunctionTemplate>(constructor)->GetFunction());
+        //NODE_SET_METHOD(exports, "ImageView", tpl);
+        //std::cout << "ImageView::Init finished" << std::endl;
     }
 
-    Handle<Value> ImageView::New(_NAN_METHOD_ARGS_TYPE args)
+    NAN_METHOD(ImageView::New)
     {
-        NanScope();
+        NanEscapableScope();
 
         if (args.This()->InternalFieldCount() == 0)
-            return v8::ThrowException(v8::Exception::TypeError(NanNew<String>("Cannot instantiate without new")));
+            return NanThrowError("Cannot instantiate without new");
 
         std::string filename;
         MarshalToNative(args[0], filename);
@@ -360,15 +363,14 @@ namespace cloudcv
         NanReturnValue(args.Holder());
     }
 
-    v8::Handle<v8::Value> ImageView::ViewForImage(cv::Mat image)
-    {
-        NanScope();
-        
+    v8::Local<v8::Value> ImageView::ViewForImage(cv::Mat image)
+    {        
+        NanEscapableScope();
         // Insiped by SO: http://stackoverflow.com/questions/16600735/what-is-an-internal-field-count-and-what-is-setinternalfieldcount-used-for
-        Local<Object> holder = constructor->NewInstance();
+        Local<Object> holder = NanNew<FunctionTemplate>(constructor)->GetFunction()->NewInstance();
 
         ImageView * imageView = new ImageView(image);
         imageView->Wrap(holder);
-        NanReturnValue(holder);
+        return NanEscapeScope(holder);
     }
 }

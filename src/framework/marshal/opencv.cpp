@@ -6,45 +6,45 @@ using namespace v8;
 
 V8Result MarshalFromNative(const cv::Size& value)
 {
-	NanScope();
+	NanEscapableScope();
 	Local<Object> structure = NanNew<Object>();
 	structure->Set(NanNew<String>("width"),    MarshalFromNative(value.width));
 	structure->Set(NanNew<String>("height"),   MarshalFromNative(value.height));
-	return (structure);
+	return NanEscapeScope(structure);
 }
 
 V8Result MarshalFromNative(const cv::Rect& value)
 {
-	NanScope();
+	NanEscapableScope();
 	Local<Object> structure = NanNew<Object>();
 	structure->Set(NanNew<String>("x"),        MarshalFromNative(value.x));
 	structure->Set(NanNew<String>("y"),        MarshalFromNative(value.y));
 	structure->Set(NanNew<String>("width"),    MarshalFromNative(value.width));
 	structure->Set(NanNew<String>("height"),   MarshalFromNative(value.height));
-	return (structure);
+	return NanEscapeScope(structure);
 }
 
 V8Result MarshalFromNative(const cv::Point& value)
 {
-	NanScope();
+	NanEscapableScope();
 	Local<Object> structure = NanNew<Object>();
 	structure->Set(NanNew<String>("x"), MarshalFromNative(value.x));
 	structure->Set(NanNew<String>("y"), MarshalFromNative(value.y));
-	return (structure);
+	return NanEscapeScope(structure);
 }
 
 V8Result MarshalFromNative(const cv::Point2f& value)
 {
-	NanScope();
+	NanEscapableScope();
 	Local<Object> structure = NanNew<Object>();
 	structure->Set(NanNew<String>("x"), MarshalFromNative(value.x));
 	structure->Set(NanNew<String>("y"), MarshalFromNative(value.y));
-	return (structure);
+	return NanEscapeScope(structure);
 }
 
 V8Result MarshalFromNative(const cv::Matx33f& value)
 {
-    NanScope();
+    NanEscapableScope();
     Handle<Array> result = NanNew<Array>(9);
     
     result->Set(0, MarshalFromNative( value(0,0) ));
@@ -59,12 +59,12 @@ V8Result MarshalFromNative(const cv::Matx33f& value)
     result->Set(7, MarshalFromNative( value(2,1) ));
     result->Set(8, MarshalFromNative( value(2,2) ));
 
-    return (result);
+    return NanEscapeScope(result);
 }
 
 V8Result MarshalFromNative(const cv::Scalar& value)
 {
-    NanScope();
+    NanEscapableScope();
     Local<Array> result = NanNew<Array>(4);
 
 	for (size_t i = 0; i < 4; i++) 
@@ -72,13 +72,13 @@ V8Result MarshalFromNative(const cv::Scalar& value)
 		result->Set(i, MarshalFromNative(value.val[i]));
 	}
 
-	return (result);
+	return NanEscapeScope(result);
 }
 
 V8Result MarshalFromNative(const cv::Mat& value)
 {
-    NanScope();
-    return (cloudcv::ImageView::ViewForImage(value));
+    NanEscapableScope();
+    return NanEscapeScope(cloudcv::ImageView::ViewForImage(value));
 }
 
 bool MarshalToNativeImage(V8Result imageBuffer, cv::Mat& frame, int flags)

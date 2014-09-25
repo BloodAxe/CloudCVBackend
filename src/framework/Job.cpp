@@ -27,7 +27,7 @@ namespace cloudcv {
 
 	void Job::HandleOKCallback()
 	{
-		NanScope();
+		NanEscapableScope();
 
 		v8::Local<v8::Value> argv[] = {
 			NanNull(),

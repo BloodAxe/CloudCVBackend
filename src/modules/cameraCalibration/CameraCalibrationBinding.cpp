@@ -13,7 +13,7 @@ namespace cloudcv
     enum PatternType {
         CHESSBOARD = 0,
         CIRCLES_GRID = 1,
-        ASCIRCLES_GRID = 2
+        ACIRCLES_GRID = 2
     };
 
     class DetectPatternTask : public Job
@@ -25,17 +25,15 @@ namespace cloudcv
             , m_patternSize(patternSize)
             , m_patternfound(false)
         {
-            mImageBuffer = Persistent<Object>::New(imageBuffer);
+            NanAssignPersistent(mImageBuffer, imageBuffer);
+
             mImageData = Buffer::Data(imageBuffer);
             mImageDataLen = Buffer::Length(imageBuffer);
         }
 
         virtual ~DetectPatternTask()
         {
-            if (!mImageBuffer.IsEmpty())
-            {
-                mImageBuffer.Dispose();
-            }
+            NanDisposePersistent(mImageBuffer);
         }
 
     protected:
@@ -86,7 +84,7 @@ namespace cloudcv
             };
                 break;
 
-            case ASCIRCLES_GRID:
+            case ACIRCLES_GRID:
             {
                                             std::cout << "ASYMMETRIC_CIRCLES_GRID " << m_patternSize << std::endl;
 
@@ -111,7 +109,7 @@ namespace cloudcv
 
         virtual Local<Value> CreateCallbackResult()
         {
-            NanScope();
+            NanEscapableScope();
             Local<Object> res = NanNew<Object>(); //(Object::New());
 
             NodeObject resultWrapper(res);
@@ -128,7 +126,7 @@ namespace cloudcv
             resultWrapper["image"] = toDataUri(m_image, kImageTypeJpeg);
             }*/
 
-            NanReturnValue(res);
+            return NanEscapeScope(res);
         }
 
     private:
@@ -182,7 +180,7 @@ namespace cloudcv
 
         virtual Local<Value> CreateCallbackResult()
         {
-            NanScope();
+            NanEscapableScope();
             Local<Object> res = NanNew<Object>(); //Local(Object::New());
 
             NodeObject resultWrapper(res);
@@ -190,7 +188,7 @@ namespace cloudcv
             resultWrapper["distCoeffs"] = m_distCoeffs;
             resultWrapper["rmsError"] = m_totalAvgErr;
 
-            NanReturnValue(res);
+            return NanEscapeScope(res);
         }
 
     private:
@@ -208,7 +206,7 @@ namespace cloudcv
                     corners.push_back(cv::Point3f(float(j*squareSize), float(i*squareSize), 0));
                 break;
 
-            case ASCIRCLES_GRID:
+            case ACIRCLES_GRID:
                 for (int i = 0; i < boardSize.height; i++)
                 for (int j = 0; j < boardSize.width; j++)
                     corners.push_back(cv::Point3f(float((2 * j + i % 2)*squareSize), float(i*squareSize), 0));
@@ -303,7 +301,7 @@ namespace cloudcv
 
     NAN_METHOD(calibrationPatternDetect)
     {
-        NanScope();
+        NanEscapableScope();
 
         Local<Object>	imageBuffer;
         Local<Function> callback;
@@ -341,7 +339,7 @@ namespace cloudcv
 
     NAN_METHOD(calibrateCamera)
     {
-        NanScope();
+        NanEscapableScope();
         return NanThrowError("This function is not implemented yet");
     }
 }

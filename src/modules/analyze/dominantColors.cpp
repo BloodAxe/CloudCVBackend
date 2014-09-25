@@ -235,4 +235,14 @@ namespace cloudcv
         return quantizedColorsTable.size();
     }
 
+    std::ostream& operator<<(std::ostream& out, const Color& res)
+    {
+        return out << "{ hash:" << res.hash << ", count: " << res.count << "}";
+    }
+
+    std::ostream& operator<<(std::ostream& out, const DominantColor& res)
+    {
+        return out << "{ color:" << res.color << ", totalPixels: " << res.totalPixels << "}";
+    }
+
 }

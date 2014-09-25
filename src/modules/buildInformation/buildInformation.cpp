@@ -12,7 +12,7 @@ namespace cloudcv
 
 	NAN_METHOD(buildInformation)
     {
-		NanScope();
+		NanEscapableScope();
 		NanReturnValue(MarshalFromNative(cv::getBuildInformation()));
     }
 }

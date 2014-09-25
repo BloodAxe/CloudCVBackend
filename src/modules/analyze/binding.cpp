@@ -20,6 +20,7 @@ namespace cloudcv
 }
 
 #include <framework/marshal/node_object_builder.hpp>
+#include <framework/Logger.h>
 
 namespace cloudcv
 {
@@ -31,7 +32,8 @@ namespace cloudcv
         ImageAnalyzeTask(Local<Object> imageBuffer, NanCallback * callback)
             : Job(callback)
         {
-            mImageBuffer = Persistent<Object>::New(imageBuffer);
+            TRACE_FUNCTION;
+            NanAssignPersistent(mImageBuffer, imageBuffer);
 
             mImageData = Buffer::Data(imageBuffer);
             mImageDataLen = Buffer::Length(imageBuffer);
@@ -39,11 +41,8 @@ namespace cloudcv
 
         virtual ~ImageAnalyzeTask()
         {
-            if (!mImageBuffer.IsEmpty())
-            {
-                mImageBuffer.Dispose();
-                mImageBuffer.Clear();
-            }
+            TRACE_FUNCTION;
+            NanDisposePersistent(mImageBuffer);
         }
 
     protected:
@@ -55,6 +54,7 @@ namespace cloudcv
         // convert them to PODs or some other fancy method.
         virtual void ExecuteNativeCode()
         {
+            TRACE_FUNCTION;
             m_source = cv::imdecode(cv::_InputArray(mImageData, mImageDataLen), cv::IMREAD_COLOR);
 
             if (m_source.empty())
@@ -70,8 +70,9 @@ namespace cloudcv
         // safe to use V8 functions again. Don't forget the HandleScope!
         virtual Local<Value> CreateCallbackResult()
         {
-            NanScope();
-            NanReturnValue(MarshalFromNative(m_analyzeResult));
+            NanEscapableScope();
+            TRACE_FUNCTION;
+            return NanEscapeScope(MarshalFromNative(m_analyzeResult));
         }
 
     private:
@@ -86,7 +87,8 @@ namespace cloudcv
 
     NAN_METHOD(analyzeImage)
     {
-        NanScope();
+        TRACE_FUNCTION;
+        NanEscapableScope();
 
         try
         {
@@ -113,7 +115,9 @@ namespace cloudcv
 
     V8Result MarshalFromNative(const Distribution& d)
     {
-        NanScope();
+        TRACE_FUNCTION;
+        NanEscapableScope();
+
         Local<Object> structure = NanNew<Object>();
         NodeObject resultWrapper(structure);
 
@@ -123,12 +127,14 @@ namespace cloudcv
         resultWrapper["min"] = d.min;
         resultWrapper["standardDeviation"] = d.standardDeviation;
 
-        NanReturnValue(structure);
+        return NanEscapeScope(structure);
     }
 
     V8Result MarshalFromNative(const DominantColor& d)
     {
-        NanScope();
+        TRACE_FUNCTION;
+        NanEscapableScope();
+
         Local<Object> structure = NanNew<Object>();
         NodeObject resultWrapper(structure);
 
@@ -137,12 +143,14 @@ namespace cloudcv
         resultWrapper["max"] = d.interclassVariance;
         resultWrapper["min"] = d.totalPixels;
 
-        NanReturnValue(structure);
+        return NanEscapeScope(structure);
     }
 
     V8Result MarshalFromNative(const RGBDistribution& d)
     {
-        NanScope();
+        TRACE_FUNCTION;
+        NanEscapableScope();
+
         Local<Object> structure = NanNew<Object>();
         NodeObject resultWrapper(structure);
 
@@ -150,12 +158,14 @@ namespace cloudcv
         resultWrapper["g"] = d.g;
         resultWrapper["r"] = d.r;
 
-        NanReturnValue(structure);
+        return NanEscapeScope(structure);
     }
 
     V8Result MarshalFromNative(const AnalyzeResult& res)
     {
-        NanScope();
+        TRACE_FUNCTION;
+        NanEscapableScope();
+
         Local<Object> structure = NanNew<Object>();
         NodeObject resultWrapper(structure);
 
@@ -170,6 +180,6 @@ namespace cloudcv
         resultWrapper["rmsContrast"] = res.rmsContrast;
         resultWrapper["uniqieColors"] = res.uniqieColors;
 
-        NanReturnValue(structure);
+        return NanEscapeScope(structure);
     }
 }

@@ -56,4 +56,14 @@ namespace cloudcv
 
         return d;
     }
+
+    std::ostream& operator<<(std::ostream& out, const Distribution& res)
+    {
+        return out << "Distribution {}";
+    }
+    std::ostream& operator<<(std::ostream& out, const RGBDistribution& res)
+    {
+        return out << "RGBDistribution { r:" << res.r << ", g:" << res.g << ", b:" << res.b << "}";
+    }
+
 }

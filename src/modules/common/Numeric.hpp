@@ -24,4 +24,8 @@ namespace cloudcv
     };
 
     Distribution distribution(cv::InputArray data);
+
+    std::ostream& operator<<(std::ostream& out, const Distribution& res);
+    std::ostream& operator<<(std::ostream& out, const RGBDistribution& res);
+
 }

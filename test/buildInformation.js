@@ -1,7 +1,16 @@
-var assert = require('assert')
+var assert = require('assert');
 var cv = require("../build/Release/cloudcv");
 
-exports['test cv.getBuildInformation'] = function() {
-    assert.isNotNull(cv.buildInformation());
-    console.log(cv.buildInformation());
-};
+describe('cv', function() {
+    it('buildInformation', function(done) {
+        var info = cv.buildInformation();
+        assert.notEqual(null, info);
+        done();
+    });
+
+    it('version check', function(done) {
+        var ver = cv.version();
+        assert.notEqual(null, ver);
+        done();
+    });
+});

@@ -34,6 +34,8 @@ namespace cloudcv
         float     error;
     };
 
+    std::ostream& operator<<(std::ostream& out, const Color& res);
+    std::ostream& operator<<(std::ostream& out, const DominantColor& res);
 
 
     class DominantColorsExtractor

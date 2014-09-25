@@ -4,6 +4,7 @@
 #include <nan.h>
 
 #include <framework/marshal/marshal.hpp>
+#include <framework/Logger.h>
 
 typedef v8::Local<v8::Value> V8Result;
 
@@ -18,9 +19,6 @@ public:
 
 	template <typename Val>
 	NodeObjectProperty& operator=(const Val& val);
-
-	NodeObjectProperty operator[](const std::string& propertyName);
-    NodeObjectProperty operator[](size_t propertyIdx);
 
 private:
     v8::Local<v8::Object> mParentObject;
@@ -42,6 +40,10 @@ private:
 template <typename Val>
 NodeObjectProperty& NodeObjectProperty::operator=(const Val& val)
 {
-	mParentObject->Set(NanNew<v8::String>(mPropertyName.c_str()), MarshalFromNative(val));
+    NanEscapableScope();
+    TRACE_FUNCTION;
+    //LOG_TRACE_MESSAGE(mPropertyName << " = " << val);
+
+	mParentObject->Set(MarshalFromNative(mPropertyName), MarshalFromNative(val));
 	return *this;
 }

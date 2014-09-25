@@ -7,7 +7,7 @@ var cloudcv = require("../build/Release/cloudcv");
 describe('cv', function() {
 
     describe('ImageView', function() {
-        it('should run without error', function(done) {
+        it('Create from image', function(done) {
             var imview = new cloudcv.ImageView("test/opencv-logo.jpg");
             assert.equal(599, imview.width());
             assert.equal(555, imview.height());
@@ -47,7 +47,6 @@ describe('cv', function() {
             var imview = new cloudcv.ImageView("test/opencv-logo.jpg");
             imview.asPngDataUri(function(err, data) {
                 assert.equal(null, err);
-                console.log(typeof data);
                 assert.notEqual(null, data);
                 done();
             });
