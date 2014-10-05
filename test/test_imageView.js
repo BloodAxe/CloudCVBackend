@@ -7,11 +7,19 @@ var cloudcv = require("../build/Release/cloudcv");
 describe('cv', function() {
 
     describe('ImageView', function() {
-        it('Create from image', function(done) {
+        it('Create from image sync', function(done) {
             var imview = new cloudcv.ImageView("test/opencv-logo.jpg");
             assert.equal(599, imview.width());
             assert.equal(555, imview.height());
             done();
+        });
+
+        it('Create from image async', function(done) {
+            cloudcv.loadImage("test/opencv-logo.jpg", function(err, imview) {
+                assert.equal(599, imview.width());
+                assert.equal(555, imview.height());
+                done();                
+            });
         });
 
         it('asJpegStream', function(done) {

@@ -131,6 +131,41 @@ namespace cloudcv
         std::ostringstream      mDataUriString;
     };
 
+    class DecodeImageTask : public Job
+    {
+    public:
+        DecodeImageTask(std::string imagePath, NanCallback * callback)
+            : Job(callback)
+            , mImagePath(imagePath)
+        {
+        }
+
+        virtual ~DecodeImageTask()
+        {
+        }
+
+    protected:
+
+        virtual void ExecuteNativeCode()
+        {
+            mImage = cv::imread(mImagePath);
+            if (mImage.empty())
+                SetErrorMessage("Cannot load or decode image");
+        }
+
+        // This function is executed in the main V8/JavaScript thread. That means it's
+        // safe to use V8 functions again. Don't forget the HandleScope!
+        virtual Local<Value> CreateCallbackResult()
+        {
+            NanEscapableScope();
+            return NanEscapeScope(ImageView::ViewForImage(mImage));
+        }
+
+    private:
+        std::string mImagePath;
+        cv::Mat     mImage;
+    };
+
     v8::Persistent<v8::FunctionTemplate> ImageView::constructor;
 
     ImageView::ImageView(const cv::Mat& image)
@@ -339,11 +374,40 @@ namespace cloudcv
         NODE_SET_PROTOTYPE_METHOD(tpl, "asPngDataUri", ImageView::AsPngDataUri);
         NODE_SET_PROTOTYPE_METHOD(tpl, "asObject", ImageView::AsObject);
 
+        NODE_SET_METHOD(exports, "loadImage", ImageView::Load);
+
         NanAssignPersistent(constructor, tpl);
         //constructor = Persistent<Function>::New();
         exports->Set(NanNew<String>("ImageView"), NanNew<FunctionTemplate>(constructor)->GetFunction());
-        //NODE_SET_METHOD(exports, "ImageView", tpl);
         //std::cout << "ImageView::Init finished" << std::endl;
+    }
+
+    NAN_METHOD(ImageView::Load)
+    {
+        TRACE_FUNCTION;
+        NanEscapableScope();
+
+        try
+        {
+            std::string     imagePath;
+            Local<Function> loadCallback;
+
+            if (NanCheck(args)
+                .ArgumentsCount(2)
+                .Argument(0).IsString().Bind(imagePath)
+                .Argument(1).IsFunction().Bind(loadCallback))
+            {
+                NanCallback *callback = new NanCallback(loadCallback);
+                NanAsyncQueueWorker(new DecodeImageTask(imagePath, callback));
+                NanReturnValue(NanTrue());
+            }
+
+            NanReturnValue(NanFalse());
+        }
+        catch (ArgumentMismatchException exc)
+        {
+            return NanThrowTypeError(exc.what());
+        }
     }
 
     NAN_METHOD(ImageView::New)
