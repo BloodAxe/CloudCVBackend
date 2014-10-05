@@ -6,7 +6,6 @@
   "license": "MIT",
   "main": "../build/Release/cloudcv",
   "scripts": {
-    "preinstall": "node-gyp clean rebuild",
     "test": "mocha test/*.js"
   },
   "dependencies": {
