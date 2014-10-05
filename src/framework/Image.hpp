@@ -19,8 +19,7 @@ namespace cloudcv
         ~ImageView() {}
     
         static NAN_METHOD(New);
-        static NAN_METHOD(Load);
-        
+
         static void Init(v8::Handle<v8::Object> exports);
         static v8::Local<v8::Value> ViewForImage(cv::Mat image);
 
@@ -45,5 +44,6 @@ namespace cloudcv
         cv::Mat mImage;    
     };
 
+    NAN_METHOD(loadImage); // Accessible via cloucv.loadImage
 }
 

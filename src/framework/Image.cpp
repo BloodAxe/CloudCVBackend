@@ -374,15 +374,13 @@ namespace cloudcv
         NODE_SET_PROTOTYPE_METHOD(tpl, "asPngDataUri", ImageView::AsPngDataUri);
         NODE_SET_PROTOTYPE_METHOD(tpl, "asObject", ImageView::AsObject);
 
-        NODE_SET_METHOD(exports, "loadImage", ImageView::Load);
-
         NanAssignPersistent(constructor, tpl);
         //constructor = Persistent<Function>::New();
         exports->Set(NanNew<String>("ImageView"), NanNew<FunctionTemplate>(constructor)->GetFunction());
         //std::cout << "ImageView::Init finished" << std::endl;
     }
 
-    NAN_METHOD(ImageView::Load)
+    NAN_METHOD(loadImage)
     {
         TRACE_FUNCTION;
         NanEscapableScope();
