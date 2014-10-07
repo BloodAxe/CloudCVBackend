@@ -7,7 +7,7 @@ var cloudcv = require("../cloudcv.js");
 describe('cv', function() {
 
     describe('calibrateCamera', function() {
-        /*
+        
         it('detectChessboardGrid', function(done) {
             var imageData = fs.readFileSync('test/grid-pattern.png');
             assert.notEqual(null, imageData);
@@ -51,7 +51,6 @@ describe('cv', function() {
 
             //assert.equal(undefined, retVal);
         });
-        */
         
         it('calibrateChessboard', function(done) {
 
@@ -74,12 +73,13 @@ describe('cv', function() {
             cloudcv.calibrateCamera(images, patternSize, 'CHESSBOARD', function(error, result) {
                 assert.equal(null, error);
                 assert.notEqual(null, result);
-                console.log(inspect(result));
+                console.log(result.intrinsic.asObject());
+                console.log(result.distCoeffs.asObject());
                 done();
             });
         });
         /**/
-        /*
+        
         it('calibrateCirclesGrid', function(done) {
             var images = [
                 'test/calibration_2/grid_01.png',
