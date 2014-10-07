@@ -30,6 +30,9 @@
                 "src/framework/Image.hpp",                
                 "src/framework/Image.cpp",
 
+                "src/framework/ImageSource.hpp",                
+                "src/framework/ImageSource.cpp",
+
                 "src/framework/Job.hpp",                
                 "src/framework/Job.cpp",
                     

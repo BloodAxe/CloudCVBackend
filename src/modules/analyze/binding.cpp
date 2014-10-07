@@ -4,6 +4,7 @@
 #include <framework/marshal/marshal.hpp>
 #include <framework/NanCheck.hpp>
 #include "framework/Job.hpp"
+#include "framework/ImageSource.hpp"
 
 #include <vector>
 
@@ -24,25 +25,20 @@ namespace cloudcv
 
 namespace cloudcv
 {
-
     class ImageAnalyzeTask : public Job
     {
     public:
 
-        ImageAnalyzeTask(Local<Object> imageBuffer, NanCallback * callback)
+        ImageAnalyzeTask(ImageSourcePtr image, NanCallback * callback)
             : Job(callback)
+            , m_imageSource(image)
         {
             TRACE_FUNCTION;
-            NanAssignPersistent(mImageBuffer, imageBuffer);
-
-            mImageData = Buffer::Data(imageBuffer);
-            mImageDataLen = Buffer::Length(imageBuffer);
         }
 
         virtual ~ImageAnalyzeTask()
         {
             TRACE_FUNCTION;
-            NanDisposePersistent(mImageBuffer);
         }
 
     protected:
@@ -55,34 +51,29 @@ namespace cloudcv
         virtual void ExecuteNativeCode()
         {
             TRACE_FUNCTION;
-            m_source = cv::imdecode(cv::_InputArray(mImageData, mImageDataLen), cv::IMREAD_COLOR);
+            cv::Mat image = m_imageSource->getImage();
 
-            if (m_source.empty())
+            if (image.empty())
             {
                 SetErrorMessage("Cannot decode image");
                 return;
             }
 
-            AnalyzeImage(m_source, m_analyzeResult);
+            AnalyzeImage(image, m_analyzeResult);
         }
 
         // This function is executed in the main V8/JavaScript thread. That means it's
         // safe to use V8 functions again. Don't forget the HandleScope!
         virtual Local<Value> CreateCallbackResult()
         {
-            NanEscapableScope();
             TRACE_FUNCTION;
+            NanEscapableScope();
             return NanEscapeScope(MarshalFromNative(m_analyzeResult));
         }
 
     private:
-
-        Persistent<Object>	 	 mImageBuffer;
-        char                   * mImageData;
-        int                      mImageDataLen;
-
-        cv::Mat                 m_source;
-        AnalyzeResult           m_analyzeResult;
+        ImageSourcePtr m_imageSource;
+        AnalyzeResult  m_analyzeResult;
     };
 
     NAN_METHOD(analyzeImage)
@@ -90,27 +81,37 @@ namespace cloudcv
         TRACE_FUNCTION;
         NanEscapableScope();
 
-        try
-        {
-            Local<Object> imageBuffer;
-            Local<Function> imageCallback;
+        Local<Object> imageBuffer;
+        std::string   imageFile;
+        Local<Function> imageCallback;
+        std::string     error;
 
-            if (NanCheck(args)
-                .ArgumentsCount(2)
-                .Argument(0).IsBuffer().Bind(imageBuffer)
-                .Argument(1).IsFunction().Bind(imageCallback))
-            {
-                NanCallback *callback = new NanCallback(imageCallback);
-                NanAsyncQueueWorker(new ImageAnalyzeTask(imageBuffer, callback));
-                NanReturnValue(NanTrue());
-            }
-
-            NanReturnValue(NanFalse());
-        }
-        catch (ArgumentMismatchException exc)
+        if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(2)
+            .Argument(0).IsBuffer().Bind(imageBuffer)
+            .Argument(1).IsFunction().Bind(imageCallback))
         {
-            return NanThrowTypeError(exc.what());
+            NanCallback *callback = new NanCallback(imageCallback);
+            NanAsyncQueueWorker(new ImageAnalyzeTask(CreateImageSource(imageBuffer), callback));
+            NanReturnValue(NanTrue());
         }
+        else if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(2)
+            .Argument(0).IsString().Bind(imageFile)
+            .Argument(1).IsFunction().Bind(imageCallback))
+        {
+            NanCallback *callback = new NanCallback(imageCallback);
+            NanAsyncQueueWorker(new ImageAnalyzeTask(CreateImageSource(imageFile), callback));
+            NanReturnValue(NanTrue());
+        }
+        else if (!error.empty())
+        {
+            return NanThrowTypeError(error.c_str());
+        }
+
+        NanReturnUndefined();
     }
 
     V8Result MarshalFromNative(const Distribution& d)

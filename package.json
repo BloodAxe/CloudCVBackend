@@ -4,21 +4,26 @@
   "description": "CloudCV backend module",
   "author": "Eugene Khvedchenya <ekhvedchenya@gmail.com>",
   "license": "MIT",
-  "main": "../build/Release/cloudcv",
+  "main": ".cloudcv.js",
+
   "scripts": {
     "test": "mocha test/*.js"
   },
+
   "dependencies": {
     "nan": "*"
   },
+
   "devDependencies": {
     "mocha": "*"
   },
+
   "keywords": [
     "opencv",
     "computer",
     "vision"
   ],
+
   "repository": {
     "type": "git",
     "url": "https://github.com/BloodAxe/CloudCVBackend.git"
