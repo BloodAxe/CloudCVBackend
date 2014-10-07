@@ -43,8 +43,6 @@ namespace cloudcv {
 
         case ACIRCLES_GRID:
         {
-            std::cout << "ASYMMETRIC_CIRCLES_GRID " << m_patternSize << std::endl;
-
             const int flags = cv::CALIB_CB_ASYMMETRIC_GRID;
             //cv::SimpleBlobDetector::Params params;
             //params.filterByColor = true;

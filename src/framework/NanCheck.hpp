@@ -11,27 +11,16 @@
 #include <map>
 
 #include <framework/marshal/marshal.hpp>
-
+#include <framework/Logger.h>
 
 
 class ArgumentMismatchException
 {
 public:
 
-    ArgumentMismatchException(const std::string& msg)
-        : mMessage(msg)
-    {
-    }
-
-    ArgumentMismatchException(int actual, int expected)
-        : mMessage("Invalid number of arguments passed to a function")
-    {
-    }
-
-    ArgumentMismatchException(int actual, const std::initializer_list<int>& expected)
-        : mMessage("Invalid number of arguments passed to a function")
-    {
-    }
+    ArgumentMismatchException(const std::string& msg);
+    ArgumentMismatchException(int actual, int expected);
+    ArgumentMismatchException(int actual, const std::initializer_list<int>& expected);
 
     virtual const char * what() const
     {
@@ -60,7 +49,6 @@ class NanCheckArguments
 {
 public:
     NanCheckArguments(_NAN_METHOD_ARGS_TYPE args);
-    NanCheckArguments(_NAN_METHOD_ARGS_TYPE args, InitFunction fn);
 
     NanCheckArguments& ArgumentsCount(int count);
     NanCheckArguments& ArgumentsCount(int argsCount1, int argsCount2);
@@ -73,10 +61,12 @@ public:
     operator bool() const;
 
     NanCheckArguments& AddAndClause(InitFunction rightCondition);
+    NanCheckArguments& Error(std::string * error);
 
 private:
     _NAN_METHOD_ARGS_TYPE m_args;
-    InitFunction         m_init;
+    InitFunction          m_init;
+    std::string         * m_error;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,10 +83,10 @@ public:
     NanCheckArguments& Bind(EnumType& value);
 protected:
 
-    bool TryMatchStringEnum(const char * key, EnumType& outValue) const;
+    bool TryMatchStringEnum(const std::string& key, EnumType& outValue) const;
 
 private:
-    std::map<const char*, EnumType>     mPossibleValues;
+    std::map<std::string, EnumType>     mPossibleValues;
     NanMethodArgBinding&                mOwner;
     int                                 mArgIndex;
 };
@@ -159,8 +149,7 @@ template <typename T>
 NanCheckArguments& NanMethodArgBinding::Bind(T& value)
 {
     return mParent.AddAndClause([this, &value](_NAN_METHOD_ARGS_TYPE args) {
-        MarshalToNative(args[mArgIndex], value);
-        return true;
+        return MarshalToNative(args[mArgIndex], value);
     });
 }
 
@@ -195,13 +184,12 @@ NanCheckArguments& NanArgStringEnum<T>::Bind(T& value)
 {
     return mOwner.mParent.AddAndClause([this, &value](_NAN_METHOD_ARGS_TYPE args) {
         std::string key;
-        MarshalToNative(args[mArgIndex], key);
-        return TryMatchStringEnum(key.c_str(), value);
+        return MarshalToNative(args[mArgIndex], key) && TryMatchStringEnum(key.c_str(), value);
     });
 }
 
 template <typename T>
-bool NanArgStringEnum<T>::TryMatchStringEnum(const char * key, T& outValue) const
+bool NanArgStringEnum<T>::TryMatchStringEnum(const std::string& key, T& outValue) const
 {
     auto it = mPossibleValues.find(key);
     if (it != mPossibleValues.end())
@@ -210,5 +198,6 @@ bool NanArgStringEnum<T>::TryMatchStringEnum(const char * key, T& outValue) cons
         return true;
     }
 
+    LOG_TRACE_MESSAGE("Cannot map string value " << key << " to any known enum values");
     return false;
 }

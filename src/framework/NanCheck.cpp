@@ -1,4 +1,23 @@
 #include "NanCheck.hpp"
+#include "Logger.h"
+
+ArgumentMismatchException::ArgumentMismatchException(const std::string& msg)
+    : mMessage(msg)
+{
+    LOG_TRACE_MESSAGE(mMessage);
+}
+
+ArgumentMismatchException::ArgumentMismatchException(int actual, int expected)
+    : mMessage("Invalid number of arguments passed to a function")
+{
+    LOG_TRACE_MESSAGE(mMessage);
+}
+
+ArgumentMismatchException::ArgumentMismatchException(int actual, const std::initializer_list<int>& expected)
+    : mMessage("Invalid number of arguments passed to a function")
+{
+    LOG_TRACE_MESSAGE(mMessage);
+}
 
 typedef std::function<bool(_NAN_METHOD_ARGS_TYPE) > InitFunction;
 
@@ -15,7 +34,10 @@ NanMethodArgBinding& NanMethodArgBinding::IsBuffer()
 {
 	auto bind = [this](_NAN_METHOD_ARGS_TYPE args) 
 	{ 
-		if (!node::Buffer::HasInstance(args[mArgIndex]))
+		bool isBuf = node::Buffer::HasInstance(args[mArgIndex]);
+		LOG_TRACE_MESSAGE("Checking whether argument is function:" << isBuf);
+
+		if (!isBuf)
 			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsBuffer check");
 		return true;
 	};
@@ -27,8 +49,11 @@ NanMethodArgBinding& NanMethodArgBinding::IsBuffer()
 NanMethodArgBinding& NanMethodArgBinding::IsFunction()
 {
 	auto bind = [this](_NAN_METHOD_ARGS_TYPE args) 
-	{ 
-		if (!args[mArgIndex]->IsFunction())
+	{
+		bool isFn = args[mArgIndex]->IsFunction();
+		LOG_TRACE_MESSAGE("Checking whether argument is function:" << isFn);
+
+		if (!isFn)
 			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsFunction check");
 
 		return true;
@@ -41,7 +66,9 @@ NanMethodArgBinding& NanMethodArgBinding::IsArray()
 {
 	auto bind = [this](_NAN_METHOD_ARGS_TYPE args) 
 	{ 
-		if (!args[mArgIndex]->IsArray())
+		bool isArr = args[mArgIndex]->IsArray();
+		LOG_TRACE_MESSAGE("Checking whether argument is array:" << isArr);
+		if (!isArr)
 			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsArray check");
 
 		return true;
@@ -55,7 +82,10 @@ NanMethodArgBinding& NanMethodArgBinding::IsString()
 {
     auto bind = [this](_NAN_METHOD_ARGS_TYPE args)
     {
-        if (!args[mArgIndex]->IsString() && !args[mArgIndex]->IsStringObject())
+		bool isStr = args[mArgIndex]->IsString() || args[mArgIndex]->IsStringObject();
+		LOG_TRACE_MESSAGE("Checking whether argument is string:" << isStr);
+
+        if (!isStr)
             throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsString check");
 
         return true;
@@ -80,12 +110,7 @@ NanMethodArgBinding& NanMethodArgBinding::NotNull()
 NanCheckArguments::NanCheckArguments(_NAN_METHOD_ARGS_TYPE args)
 : m_args(args)
 , m_init([](_NAN_METHOD_ARGS_TYPE args) { return true; })
-{
-}
-
-NanCheckArguments::NanCheckArguments(_NAN_METHOD_ARGS_TYPE args, InitFunction fn)
-: m_args(args)
-, m_init(fn)
+, m_error(0)
 {
 }
 
@@ -114,7 +139,15 @@ NanCheckArguments& NanCheckArguments::ArgumentsCount(int argsCount1, int argsCou
 
 NanMethodArgBinding NanCheckArguments::Argument(int index)
 {
+	TRACE_FUNCTION;
 	return NanMethodArgBinding(index, *this);
+}
+
+NanCheckArguments& NanCheckArguments::Error(std::string * error)
+{
+	TRACE_FUNCTION;
+	m_error = error;
+	return *this;
 }
 
 /**
@@ -122,7 +155,29 @@ NanMethodArgBinding NanCheckArguments::Argument(int index)
  */
 NanCheckArguments::operator bool() const
 {
-	return m_init(m_args);
+	TRACE_FUNCTION;
+	try 
+	{
+		return m_init(m_args);
+	}
+	catch (ArgumentMismatchException& exc)
+	{
+		LOG_TRACE_MESSAGE(exc.what());
+		if (m_error)
+		{
+			*m_error = exc.what();
+		}
+		return false;
+	}
+	catch (...)
+	{
+		LOG_TRACE_MESSAGE("Cought unexpected exception");
+		if (m_error)
+		{
+			*m_error = "Unknown error";
+		}
+		return false;
+	}
 }
 
 NanCheckArguments& NanCheckArguments::AddAndClause(InitFunction rightCondition)

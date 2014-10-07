@@ -1,6 +1,7 @@
 #include "marshal.hpp"
 #include "node_object_builder.hpp"
 #include "framework/Image.hpp"
+#include "framework/Logger.h"
 
 using namespace v8;
 
@@ -94,17 +95,17 @@ bool MarshalToNativeImage(V8Result imageBuffer, cv::Mat& frame, int flags)
 
 bool MarshalToNative(V8Result obj, cv::Point2f& value)
 {
-    static auto xKey = NanNew<String>("x");
-    static auto yKey = NanNew<String>("y");
-
+    TRACE_FUNCTION;
+    
     if (!obj->IsObject())
         return false;
 
-    auto object = obj.As<v8::Object>();
+    const Handle<v8::Object>& object = obj.As<v8::Object>();
 
-    if (object->HasOwnProperty(xKey) && object->HasOwnProperty(yKey)) {
-        value.x = static_cast<float>(object->Get(xKey)->NumberValue());
-        value.y = static_cast<float>(object->Get(yKey)->NumberValue());
+    if (object->HasOwnProperty(NanNew<String>("x")) && 
+        object->HasOwnProperty(NanNew<String>("y"))) {
+        value.x = static_cast<float>(object->Get(NanNew<String>("x"))->NumberValue());
+        value.y = static_cast<float>(object->Get(NanNew<String>("y"))->NumberValue());
         return true;
     }
 
@@ -113,17 +114,17 @@ bool MarshalToNative(V8Result obj, cv::Point2f& value)
 
 bool MarshalToNative(V8Result obj, cv::Size& value)
 {
-    static auto wKey = NanNew<String>("width");
-    static auto hKey = NanNew<String>("height");
+    TRACE_FUNCTION;
 
     if (!obj->IsObject())
         return false;
 
-    auto object = obj.As<v8::Object>();
+    const Handle<v8::Object>& object = obj.As<v8::Object>();
 
-    if (object->HasOwnProperty(wKey) && object->HasOwnProperty(hKey)) {
-        value.width = static_cast<float>(object->Get(wKey)->NumberValue());
-        value.height = static_cast<float>(object->Get(hKey)->NumberValue());
+    if (object->HasOwnProperty(NanNew<String>("width")) && 
+        object->HasOwnProperty(NanNew<String>("height"))) {
+        value.width  = static_cast<float>(object->Get(NanNew<String>("width"))->NumberValue());
+        value.height = static_cast<float>(object->Get(NanNew<String>("height"))->NumberValue());
         return true;
     }
 
