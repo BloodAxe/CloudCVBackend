@@ -66,22 +66,26 @@ V8Result MarshalFromNative(const std::array<_Tp, _Size>& values)
 
 //////////////////////////////////////////////////////////////////////////
 
-void MarshalToNative(V8Result inVal, std::string& outVal);
+bool MarshalToNative(V8Result inVal, std::string& outVal);
 
 template<typename _Tp>
-void MarshalToNative(V8Result obj, std::vector<_Tp>& value)
+bool MarshalToNative(V8Result obj, std::vector<_Tp>& value)
 {
-    //bool converted = true;
-
-    uint32_t len = obj.As<v8::Array>()->Length();
-    value.resize(len);
-
-    for (uint32_t i = 0; i <len; i++)
+    if (obj->IsArray())
     {
-        V8Result item = obj.As<v8::Array>()->Get(i);
-        /*converted &= */
-        MarshalToNative(item, value[i]);
+        uint32_t len = obj.As<v8::Array>()->Length();
+        value.resize(len);
+
+        bool converted = true;
+        
+        for (uint32_t i = 0; i < len && converted; i++)
+        {
+            V8Result item = obj.As<v8::Array>()->Get(i);
+            converted &= MarshalToNative(item, value[i]);
+        }
+
+        return converted;
     }
 
-    //return converted;
+    return false;
 }

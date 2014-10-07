@@ -119,6 +119,7 @@ public:
     NanMethodArgBinding& IsFunction();
     NanMethodArgBinding& IsString();
     NanMethodArgBinding& NotNull();
+    NanMethodArgBinding& IsArray();
 
     template <typename T>
     NanArgStringEnum<T> StringEnum(std::initializer_list< std::pair<const char*, T> > possibleValues);
@@ -129,6 +130,9 @@ public:
     template <typename T>
     NanCheckArguments& Bind(T& value);
 
+    template <typename T1, typename T2>
+    NanCheckArguments& BindAny(T1& value1, T2& value2);
+    
 private:
     int                 mArgIndex;
     NanCheckArguments&  mParent;
@@ -158,6 +162,14 @@ NanCheckArguments& NanMethodArgBinding::Bind(T& value)
         MarshalToNative(args[mArgIndex], value);
         return true;
     });
+}
+
+template <typename T1, typename T2>
+NanCheckArguments& NanMethodArgBinding::BindAny(T1& value1, T2& value2)
+{
+    return mParent.AddAndClause([this, &value1, &value2](_NAN_METHOD_ARGS_TYPE args) {
+        return MarshalToNative(args[mArgIndex], value1) || MarshalToNative(args[mArgIndex], value2);
+    });  
 }
 
 template <typename T>

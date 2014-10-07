@@ -54,6 +54,8 @@
                 "src/modules/buildInformation/buildInformation.cpp", 
 
                 "src/modules/cameraCalibration/CameraCalibrationBinding.cpp", 
+                "src/modules/cameraCalibration/CameraCalibrationAlgorithm.hpp", 
+                "src/modules/cameraCalibration/CameraCalibrationAlgorithm.cpp", 
             ],
 
             'include_dirs': [

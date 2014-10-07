@@ -33,3 +33,4 @@ bool MarshalToNativeImage(V8Result buffer, cv::Mat& frame, int flags);
 
 
 bool MarshalToNative(V8Result obj, cv::Point2f& value);
+bool MarshalToNative(V8Result obj, cv::Size& value);

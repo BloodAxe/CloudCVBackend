@@ -94,10 +94,39 @@ bool MarshalToNativeImage(V8Result imageBuffer, cv::Mat& frame, int flags)
 
 bool MarshalToNative(V8Result obj, cv::Point2f& value)
 {
-    value.x = static_cast<float>(obj.As<v8::Object>()->Get(NanNew<String>("x"))->NumberValue());
-    value.y = static_cast<float>(obj.As<v8::Object>()->Get(NanNew<String>("y"))->NumberValue());
+    static auto xKey = NanNew<String>("x");
+    static auto yKey = NanNew<String>("y");
 
-    return true;
+    if (!obj->IsObject())
+        return false;
+
+    auto object = obj.As<v8::Object>();
+
+    if (object->HasOwnProperty(xKey) && object->HasOwnProperty(yKey)) {
+        value.x = static_cast<float>(object->Get(xKey)->NumberValue());
+        value.y = static_cast<float>(object->Get(yKey)->NumberValue());
+        return true;
+    }
+
+    return false;
 }
 
+bool MarshalToNative(V8Result obj, cv::Size& value)
+{
+    static auto wKey = NanNew<String>("width");
+    static auto hKey = NanNew<String>("height");
+
+    if (!obj->IsObject())
+        return false;
+
+    auto object = obj.As<v8::Object>();
+
+    if (object->HasOwnProperty(wKey) && object->HasOwnProperty(hKey)) {
+        value.width = static_cast<float>(object->Get(wKey)->NumberValue());
+        value.height = static_cast<float>(object->Get(hKey)->NumberValue());
+        return true;
+    }
+
+    return false;
+}
 

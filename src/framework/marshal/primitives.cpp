@@ -32,22 +32,39 @@ V8Result MarshalFromNative(const char * value)
 	return NanEscapeScope(NanNew<String>(value));
 }
 
-void MarshalToNative(V8Result inVal, int& outVal)
+bool MarshalToNative(V8Result inVal, int& outVal)
 {
-    outVal = inVal->Int32Value();
+    if (inVal->IsNumber()) {
+        outVal = inVal->Int32Value();
+        return true;
+    }
+
+    return false;
 }
 
-void MarshalToNative(V8Result inVal, unsigned int& outVal)
+bool MarshalToNative(V8Result inVal, unsigned int& outVal)
 {
-    outVal = inVal->Uint32Value();
-}
+    if (inVal->IsNumber()) {
+        outVal = inVal->Uint32Value();
+        return true;
+    }
 
-void MarshalToNative(V8Result inVal, float& outVal)
-{
-    outVal = static_cast<float>(inVal->NumberValue());
-}
+    return false;}
 
-void MarshalToNative(V8Result inVal, double& outVal)
+bool MarshalToNative(V8Result inVal, float& outVal)
 {
-    outVal = inVal->NumberValue();
-}
+    if (inVal->IsNumber()) {
+        outVal = static_cast<float>(inVal->NumberValue());
+        return true;
+    }
+
+    return false;}
+
+bool MarshalToNative(V8Result inVal, double& outVal)
+{
+    if (inVal->IsNumber()) {
+        outVal = inVal->NumberValue();
+        return true;
+    }
+
+    return false;}

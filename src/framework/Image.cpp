@@ -150,7 +150,7 @@ namespace cloudcv
         {
             mImage = cv::imread(mImagePath);
             if (mImage.empty())
-                SetErrorMessage("Cannot load or decode image");
+                SetErrorMessage("Cannot load or decode image");                
         }
 
         // This function is executed in the main V8/JavaScript thread. That means it's

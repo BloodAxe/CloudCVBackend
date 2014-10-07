@@ -37,6 +37,20 @@ NanMethodArgBinding& NanMethodArgBinding::IsFunction()
 	return *this;
 }
 
+NanMethodArgBinding& NanMethodArgBinding::IsArray()
+{
+	auto bind = [this](_NAN_METHOD_ARGS_TYPE args) 
+	{ 
+		if (!args[mArgIndex]->IsArray())
+			throw ArgumentMismatchException(std::string("Argument ") + lexical_cast(mArgIndex) + " violates IsArray check");
+
+		return true;
+	};
+	mParent.AddAndClause(bind);
+	return *this;
+}
+
+
 NanMethodArgBinding& NanMethodArgBinding::IsString()
 {
     auto bind = [this](_NAN_METHOD_ARGS_TYPE args)

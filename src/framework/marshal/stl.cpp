@@ -7,9 +7,13 @@ V8Result MarshalFromNative(const std::string& value)
 	return NanEscapeScope(NanNew<String>(value.c_str()));
 }
 
-void MarshalToNative(V8Result inVal, std::string& outVal)
+bool MarshalToNative(V8Result inVal, std::string& outVal)
 {
-    NanAsciiString cStr = NanAsciiString(inVal);
+    if (inVal->IsString()) {
+        NanAsciiString cStr = NanAsciiString(inVal);
+        outVal = std::string(*cStr, cStr.Size());
+        return true;
+    }
 
-    outVal = std::string(*cStr, cStr.Size());
+    return false;
 }
