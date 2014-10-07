@@ -1,6 +1,7 @@
 #include "Job.hpp"
 #include <stdexcept>
 #include <iostream>
+#include "framework/Logger.h"
 
 namespace cloudcv {
 
@@ -36,4 +37,11 @@ namespace cloudcv {
 
 		callback->Call(2, argv);
 	}
+
+    void Job::SetErrorMessage(const std::string& errorMessage)
+    {
+        LOG_TRACE_MESSAGE("Error message:" << errorMessage);
+        
+        NanAsyncWorker::SetErrorMessage(errorMessage.c_str());
+    }        
 }

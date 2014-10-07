@@ -2,15 +2,14 @@ var assert = require("assert")
 var fs     = require('fs');
 var inspect = require('util').inspect;
 
-var cv = require("../build/Release/cloudcv");
-
+var cloudcv = require("../cloudcv.js");
 
 describe('cv', function() {
 
     describe('analyzeImage', function() {
         it('should run without error', function(done) {
             var imageData = fs.readFileSync("test/opencv-logo.jpg");
-            cv.analyzeImage(imageData, function(error, result) { 
+            cloudcv.analyzeImage(imageData, function(error, result) { 
                 //console.log(error, result);
                    
                 assert.notStrictEqual(result, undefined);

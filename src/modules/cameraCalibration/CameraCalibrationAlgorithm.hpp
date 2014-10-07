@@ -25,18 +25,6 @@ namespace cloudcv {
         bool detectCorners(const cv::Mat& frame, VectorOf2DPoints& corners2d) const;
 
         bool calibrateCamera(
-            const std::vector<std::string>& imageFiles,
-            cv::Mat& cameraMatrix,
-            cv::Mat& distCoeffs
-        ) const;
-
-        bool calibrateCamera(
-            const VectorOfMat& images,
-            cv::Mat& cameraMatrix,
-            cv::Mat& distCoeffs
-        ) const;
-
-        bool calibrateCamera(
             const VectorOfVectorOf2DPoints& gridCorners,
             const cv::Size imageSize,
             cv::Mat& cameraMatrix,

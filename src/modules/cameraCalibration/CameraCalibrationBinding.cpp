@@ -126,26 +126,59 @@ namespace cloudcv
         virtual void ExecuteNativeCode()
         {
             TRACE_FUNCTION;
-            if (!m_imageFiles.empty()) {
-                m_calibrationSuccess = m_algorithm.calibrateCamera(m_imageFiles, m_cameraMatrix, m_distCoeffs);                
+            
+            if (!m_imageFiles.empty())
+            {
+                m_gridCorners.resize(m_imageFiles.size());
+
+                for (size_t i = 0; i < m_imageFiles.size(); i++)
+                {
+                    cv::Mat image = cv::imread(m_imageFiles[i], cv::IMREAD_GRAYSCALE);
+                    if (image.empty())
+                    {
+                        SetErrorMessage(std::string("Cannot read image at index ") + lexical_cast(i) + ": " + m_imageFiles[i]);
+                        return;
+                    }
+
+                    if (!m_algorithm.detectCorners(image, m_gridCorners[i]))
+                    {
+                        SetErrorMessage(std::string("Cannot detect calibration pattern on image at index ") + lexical_cast(i));
+                        return;
+                    }
+
+                    m_imageSize = image.size();
+                }
+
             }
-            else if (!m_gridCorners.empty()) {
+            
+            if (!m_gridCorners.empty())
+            {
                 m_calibrationSuccess = m_algorithm.calibrateCamera(m_gridCorners, m_imageSize, m_cameraMatrix, m_distCoeffs);                
+                LOG_TRACE_MESSAGE("m_calibrationSuccess = " << m_calibrationSuccess);
             }
-            else {
+            else
+            {
                 SetErrorMessage("Neither image files nor grid corners were passed");
+                return;
             }
 
         }
 
         virtual Local<Value> CreateCallbackResult()
         {
+            TRACE_FUNCTION;
             NanEscapableScope();
             Local<Object> res = NanNew<Object>(); //Local(Object::New());
 
             NodeObject resultWrapper(res);
-            resultWrapper["intrinsic"]  = m_cameraMatrix;
-            resultWrapper["distCoeffs"] = m_distCoeffs;
+
+            if (m_calibrationSuccess)
+            {
+                resultWrapper["intrinsic"]  = m_cameraMatrix;
+                resultWrapper["distCoeffs"] = m_distCoeffs;                
+            }
+
+            resultWrapper["calibrationSuccess"] = m_calibrationSuccess;
 
             return NanEscapeScope(res);
         }
@@ -218,6 +251,8 @@ namespace cloudcv
                 { "ACIRCLES_GRID",  PatternType::ACIRCLES_GRID } }).Bind(pattern)
             .Argument(3).IsFunction().Bind(callback))
         {
+            LOG_TRACE_MESSAGE("Image files count: " << imageFiles.size());
+
             NanCallback *nanCallback = new NanCallback(callback);
             NanAsyncQueueWorker(new ComputeIntrinsicParametersTask(imageFiles, patternSize, pattern, nanCallback));
             NanReturnValue(NanTrue());

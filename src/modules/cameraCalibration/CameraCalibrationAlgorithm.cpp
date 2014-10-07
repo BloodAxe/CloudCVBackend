@@ -1,4 +1,5 @@
 #include "CameraCalibrationAlgorithm.hpp"
+#include <framework/Logger.h>
 
 namespace cloudcv {
 
@@ -11,97 +12,57 @@ namespace cloudcv {
 
     bool CameraCalibrationAlgorithm::detectCorners(const cv::Mat& frame, VectorOf2DPoints& corners2d) const
     {
+        TRACE_FUNCTION;
         corners2d.clear();
         bool m_patternfound = false;
 
         switch (m_pattern)
         {
-        case CHESSBOARD:
-        {
-           const int flags = cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ADAPTIVE_THRESH;
-           m_patternfound = cv::findChessboardCorners(frame, m_patternSize, corners2d, flags);
+            case CHESSBOARD:
+            {
+               const int flags = cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ADAPTIVE_THRESH;
+               m_patternfound = cv::findChessboardCorners(frame, m_patternSize, corners2d, flags);
 
-           if (m_patternfound)
-           {
-               const cv::TermCriteria tc = cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1);
-               cv::cornerSubPix(frame, corners2d, cv::Size(11, 11), cv::Size(-1, -1), tc);
-           }
-        };  break;
+               if (false && m_patternfound)
+               {
+                   const cv::TermCriteria tc = cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1);
+                   cv::cornerSubPix(frame, corners2d, cv::Size(5, 5), cv::Size(-1, -1), tc);
+               }
+            };  break;
 
-        case CIRCLES_GRID:
-        {
-             const int flags = cv::CALIB_CB_SYMMETRIC_GRID;
-             //cv::SimpleBlobDetector::Params params;
-             //params.filterByColor = true;
-             //params.blobColor = 0;
-             //params.filterByArea = false;
-             //params.filterByInertia = false;
+            case CIRCLES_GRID:
+            {
+                 const int flags = cv::CALIB_CB_SYMMETRIC_GRID;
+                 //cv::SimpleBlobDetector::Params params;
+                 //params.filterByColor = true;
+                 //params.blobColor = 0;
+                 //params.filterByArea = false;
+                 //params.filterByInertia = false;
 
-             //cv::Ptr<cv::FeatureDetector> blobDetector = new cv::SimpleBlobDetector(params);
-             m_patternfound = cv::findCirclesGrid(frame, m_patternSize, corners2d, flags);
-        };  break;
+                 //cv::Ptr<cv::FeatureDetector> blobDetector = new cv::SimpleBlobDetector(params);
+                 m_patternfound = cv::findCirclesGrid(frame, m_patternSize, corners2d, flags);
+            };  break;
 
-        case ACIRCLES_GRID:
-        {
-            const int flags = cv::CALIB_CB_ASYMMETRIC_GRID;
-            //cv::SimpleBlobDetector::Params params;
-            //params.filterByColor = true;
-            //params.blobColor = 0;
-            //params.filterByArea = false;
-            //params.maxArea = 10e4;
+            case ACIRCLES_GRID:
+            {
+                const int flags = cv::CALIB_CB_ASYMMETRIC_GRID;
+                //cv::SimpleBlobDetector::Params params;
+                //params.filterByColor = true;
+                //params.blobColor = 0;
+                //params.filterByArea = false;
+                //params.maxArea = 10e4;
 
-            //cv::Ptr<cv::FeatureDetector> blobDetector = new cv::SimpleBlobDetector(params);
-            m_patternfound = cv::findCirclesGrid(frame, m_patternSize, corners2d, flags);
-            //m_patternfound = cv::findCirclesGrid(m_image, m_patternSize, m_corners2d, flags, blobDetector);
-        };  break;
+                //cv::Ptr<cv::FeatureDetector> blobDetector = new cv::SimpleBlobDetector(params);
+                m_patternfound = cv::findCirclesGrid(frame, m_patternSize, corners2d, flags);
+                //m_patternfound = cv::findCirclesGrid(m_image, m_patternSize, m_corners2d, flags, blobDetector);
+            };  break;
 
-        default:
-            std::cerr << "Unsupported pattern type value " << m_pattern << std::endl;
-            break;
+            default:
+                LOG_TRACE_MESSAGE("Unsupported pattern type value " << m_pattern);
+                break;
         };
 
         return m_patternfound;
-    }
-
-    bool CameraCalibrationAlgorithm::calibrateCamera(
-        const std::vector<std::string>& imageFiles,
-        cv::Mat& cameraMatrix,
-        cv::Mat& distCoeffs
-    ) const
-    {
-        VectorOfMat images(imageFiles.size());
-
-        for (size_t i = 0; i < images.size(); i++)
-        {
-            images[i] = cv::imread(imageFiles[i], cv::IMREAD_GRAYSCALE);
-            if (images[i].empty())
-            {
-                return false;                
-            }
-        }
-
-        return calibrateCamera(images, cameraMatrix, distCoeffs);
-    }
-
-
-    bool CameraCalibrationAlgorithm::calibrateCamera(
-        const VectorOfMat& images,
-        cv::Mat& cameraMatrix,
-        cv::Mat& distCoeffs
-        ) const 
-    {
-        VectorOfVectorOf2DPoints corners(images.size());
-        bool allDetected = true;
-        cv::Size imageSize = images[0].size();
-
-        for (size_t i = 0; i < images.size(); i++) {
-            allDetected &= (imageSize == images[i].size()) && detectCorners(images[i], corners[i]);                
-        }
-
-        if (!allDetected)
-            return false;
-
-        return calibrateCamera(corners, imageSize, cameraMatrix, distCoeffs);
     }
 
     bool CameraCalibrationAlgorithm::calibrateCamera(
@@ -111,6 +72,7 @@ namespace cloudcv {
         cv::Mat& distCoeffs
     ) const
     {
+        TRACE_FUNCTION;
         VectorOfMat rvecs;
         VectorOfMat tvecs;
         std::vector<float> reprojErrs;
@@ -148,6 +110,7 @@ namespace cloudcv {
         double& totalAvgErr
     )
     {
+        TRACE_FUNCTION;
         cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
 
         if (flags & cv::CALIB_FIX_ASPECT_RATIO)
@@ -162,10 +125,14 @@ namespace cloudcv {
 
         objectPoints.resize(imagePoints.size(), objectPoints[0]);
 
+        LOG_TRACE_MESSAGE("Object points size:" << objectPoints.size());
+        LOG_TRACE_MESSAGE("Image points size :" << imagePoints.size());
+        LOG_TRACE_MESSAGE("Image size        :" << imageSize);
+
         double rms = cv::calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix,
             distCoeffs, rvecs, tvecs, flags | cv::CALIB_FIX_K4 | cv::CALIB_FIX_K5);
 
-        std::cout << "RMS error reported by calibrateCamera: " << rms << std::endl;
+        LOG_TRACE_MESSAGE("RMS error reported by calibrateCamera: " << rms);
 
         bool ok = cv::checkRange(cameraMatrix) && cv::checkRange(distCoeffs);
 
@@ -182,6 +149,7 @@ namespace cloudcv {
         PatternType patternType
     )
     {
+        TRACE_FUNCTION;
         corners.resize(0);
 
         switch (patternType)
@@ -201,7 +169,7 @@ namespace cloudcv {
 
         default:
             break;
-        }
+        };
     }
 
     double CameraCalibrationAlgorithm::computeReprojectionErrors(
@@ -214,6 +182,7 @@ namespace cloudcv {
         std::vector<float>& perViewErrors
         )
     {
+        TRACE_FUNCTION;
         std::vector<cv::Point2f> imagePoints2;
         int totalPoints = 0;
         double totalErr = 0, err;

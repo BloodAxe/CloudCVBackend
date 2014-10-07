@@ -2,7 +2,7 @@ var assert = require("assert")
 var fs     = require('fs');
 var inspect = require('util').inspect;
 
-var cloudcv = require("../build/Release/cloudcv");
+var cloudcv = require("../cloudcv.js");
 
 describe('cv', function() {
 

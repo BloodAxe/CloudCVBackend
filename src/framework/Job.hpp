@@ -19,6 +19,8 @@ namespace cloudcv {
         virtual void HandleOKCallback();
 
     protected:
+        void SetErrorMessage(const std::string& errorMessage);
+        
         virtual void ExecuteNativeCode() = 0;
 
 		virtual v8::Local<v8::Value> CreateCallbackResult() = 0;
