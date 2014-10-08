@@ -8,7 +8,7 @@ describe('cv', function() {
 
     describe('calibrateCamera', function() {
         
-        it('detectChessboardGrid', function(done) {
+        it('detectChessboardGrid (Buffer)', function(done) {
             var imageData = fs.readFileSync('test/grid-pattern.png');
             assert.notEqual(null, imageData);
 
@@ -21,7 +21,20 @@ describe('cv', function() {
                 done();
             });
 
-            //assert.equal(undefined, retVal);
+            assert.equal(true, retVal);
+        });
+
+        it('detectChessboardGrid (File)', function(done) {
+            var patternSize = { width:9, height:6 };
+
+            var retVal = cloudcv.calibrationPatternDetect('test/grid-pattern.png', patternSize, 'CHESSBOARD', function(error, result) {
+
+                assert.equal(null, error);
+                assert.notEqual(null, result);
+                done();
+            });
+
+            assert.equal(true, retVal);
         });
 
         it('detectCirclesGrid', function(done) {

@@ -7,6 +7,7 @@ var cloudcv = require("../cloudcv.js");
 describe('cv', function() {
 
     describe('analyzeImage', function() {
+        
         it('process (Buffer)', function(done) {
             var imageData = fs.readFileSync("test/opencv-logo.jpg");
             cloudcv.analyzeImage(imageData, function(error, result) { 

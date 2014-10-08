@@ -9,9 +9,8 @@ namespace cloudcv
     class FileImageSource : public ImageSource
     {
     public:
-        FileImageSource(const std::string& imagePath, int prefferedColorspace = cv::IMREAD_COLOR)
+        FileImageSource(const std::string& imagePath)
             : mFilePath(imagePath)
-            , mFlags(prefferedColorspace)
         {            
         }
 
@@ -19,21 +18,19 @@ namespace cloudcv
         {
         }
 
-        cv::Mat getImage()
+        cv::Mat getImage(int flags)
         {
-            return cv::imread(mFilePath, mFlags);
+            return cv::imread(mFilePath, flags);
         }
 
     private:
         std::string mFilePath;
-        int         mFlags;
     };
 
     class BufferImageSource : public ImageSource
     {
     public:
-        BufferImageSource(Local<Object> imageBuffer, int prefferedColorspace = cv::IMREAD_COLOR)
-            : mFlags(prefferedColorspace)
+        BufferImageSource(Local<Object> imageBuffer)
         {
             NanAssignPersistent(mImageBuffer, imageBuffer);
 
@@ -46,16 +43,15 @@ namespace cloudcv
             NanDisposePersistent(mImageBuffer);
         }
 
-        cv::Mat getImage()
+        cv::Mat getImage(int flags)
         {
-            return cv::imdecode(cv::_InputArray(mImageData, mImageDataLen), mFlags);
+            return cv::imdecode(cv::_InputArray(mImageData, mImageDataLen), flags);
         }
 
     private:
         Persistent<Object>       mImageBuffer;
         char                   * mImageData;
         int                      mImageDataLen;
-        int                      mFlags;
     };
 
     ImageSourcePtr CreateImageSource(const std::string& filepath)

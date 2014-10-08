@@ -5,7 +5,7 @@
 #include <framework/Job.hpp>
 #include <framework/NanCheck.hpp>
 #include <framework/Logger.h>
-
+#include "framework/ImageSource.hpp"
 #include "CameraCalibrationAlgorithm.hpp"
 
 using namespace v8;
@@ -17,21 +17,17 @@ namespace cloudcv
     class DetectPatternTask : public Job
     {
     public:
-        DetectPatternTask(Local<Object> imageBuffer, cv::Size patternSize, PatternType type, NanCallback * callback)
+        DetectPatternTask(ImageSourcePtr imageSource, cv::Size patternSize, PatternType type, NanCallback * callback)
             : Job(callback)
+            , m_imageSource(imageSource)
             , m_algorithm(patternSize, type)
         {
             TRACE_FUNCTION;
-            NanAssignPersistent(mImageBuffer, imageBuffer);
-
-            mImageData = Buffer::Data(imageBuffer);
-            mImageDataLen = Buffer::Length(imageBuffer);
         }
 
         virtual ~DetectPatternTask()
         {
             TRACE_FUNCTION;
-            NanDisposePersistent(mImageBuffer);
         }
 
     protected:
@@ -39,7 +35,7 @@ namespace cloudcv
         void ExecuteNativeCode()
         {
             TRACE_FUNCTION;
-            cv::Mat frame = cv::imdecode(cv::_InputArray(mImageData, mImageDataLen), cv::IMREAD_GRAYSCALE);
+            cv::Mat frame = m_imageSource->getImage(cv::IMREAD_GRAYSCALE);
             if (frame.empty())
             {
                 SetErrorMessage("Cannot decode input image");
@@ -75,13 +71,10 @@ namespace cloudcv
         }
 
     private:
+        ImageSourcePtr                                  m_imageSource;
         CameraCalibrationAlgorithm                      m_algorithm;
         CameraCalibrationAlgorithm::VectorOf2DPoints    m_corners2d;
-
-        Persistent<Object>	 	 mImageBuffer;
-        char                   * mImageData;
-        int                      mImageDataLen;
-
+        
         bool                     m_patternfound;
         bool                     m_returnImage;
     };
@@ -133,7 +126,7 @@ namespace cloudcv
 
                 for (size_t i = 0; i < m_imageFiles.size(); i++)
                 {
-                    cv::Mat image = cv::imread(m_imageFiles[i], cv::IMREAD_GRAYSCALE);
+                    cv::Mat image = CreateImageSource(m_imageFiles[i])->getImage(cv::IMREAD_GRAYSCALE);
                     if (image.empty())
                     {
                         SetErrorMessage(std::string("Cannot read image at index ") + lexical_cast(i) + ": " + m_imageFiles[i]);
@@ -199,11 +192,13 @@ namespace cloudcv
         NanEscapableScope();
 
         Local<Object>	imageBuffer;
+        std::string     imagePath;
         Local<Function> callback;
         cv::Size        patternSize;
         PatternType     pattern;
         std::string     error;
         LOG_TRACE_MESSAGE("Begin parsing arguments");
+
         if (NanCheck(args)
             .Error(&error)
             .ArgumentsCount(4)
@@ -217,8 +212,32 @@ namespace cloudcv
         {
             LOG_TRACE_MESSAGE("Parsed function arguments");
             NanCallback *nanCallback = new NanCallback(callback);
-            NanAsyncQueueWorker(new DetectPatternTask(imageBuffer, patternSize, pattern, nanCallback));
-            NanReturnUndefined();
+            NanAsyncQueueWorker(new DetectPatternTask(
+                CreateImageSource(imageBuffer), 
+                patternSize, 
+                pattern, 
+                nanCallback));
+            NanReturnValue(NanTrue());
+        }
+        else if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(4)
+            .Argument(0).IsString().Bind(imagePath)
+            .Argument(1).Bind(patternSize)
+            .Argument(2).StringEnum<PatternType>({ 
+                { "CHESSBOARD",     PatternType::CHESSBOARD }, 
+                { "CIRCLES_GRID",   PatternType::CIRCLES_GRID }, 
+                { "ACIRCLES_GRID",  PatternType::ACIRCLES_GRID } }).Bind(pattern)
+            .Argument(3).IsFunction().Bind(callback))
+        {
+            LOG_TRACE_MESSAGE("Parsed function arguments");
+            NanCallback *nanCallback = new NanCallback(callback);
+            NanAsyncQueueWorker(new DetectPatternTask(
+                CreateImageSource(imagePath), 
+                patternSize, 
+                pattern, 
+                nanCallback));
+            NanReturnValue(NanTrue());
         }
         else if (!error.empty())
         {

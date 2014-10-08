@@ -6,10 +6,22 @@
 
 namespace cloudcv
 {
+    /**
+     * @brief   Image source is accessor to image, stored in external resource.
+     * @details This abstract class has particular implementations to retrieve 
+     *          image data from filesystem and image buffer.
+     */
     class ImageSource
     {
     public:
-        virtual cv::Mat getImage() = 0;
+        /**
+         * @brief   Main method to retrieve image. This method will work synchronously.
+         * @details Returns the image stored in the ImageSource object.
+         * @return  This function returns the loaded image. It can also return an 
+         *          empty object if the image could not been loaded.
+         */
+        virtual cv::Mat getImage(int flags = cv::IMREAD_COLOR) = 0;
+
         virtual ~ImageSource() {}
 
     protected:
@@ -22,6 +34,14 @@ namespace cloudcv
 
     typedef std::shared_ptr<ImageSource> ImageSourcePtr;
 
+    /**
+     * @brief Creates an ImageSource that points to particular file on filesystem.
+     */
     ImageSourcePtr CreateImageSource(const std::string& filepath);
+
+    /**
+     * @brief Creates an ImageSource that points to file's binary content that was
+     *        loaded using Node.js.
+     */
     ImageSourcePtr CreateImageSource(v8::Local<v8::Object> imageBuffer);
 }
