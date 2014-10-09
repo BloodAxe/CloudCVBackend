@@ -11,7 +11,8 @@
   },
 
   "dependencies": {
-    "nan": "*"
+    "nan": "*",
+    "native-opencv": "BloodAxe/npm-native-opencv"
   },
 
   "devDependencies": {
