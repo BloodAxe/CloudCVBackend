@@ -177,48 +177,42 @@ namespace cloudcv
     NAN_METHOD(ImageView::AsJpegStream)
     {
         SETUP_FUNCTION(ImageView);
-        try
+        Local<Function> imageCallback;
+        std::string error;
+        
+        if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(1)
+            .Argument(0).IsFunction().Bind(imageCallback))
         {
-            Local<Function> imageCallback;
-
-            if (NanCheck(args)
-                .ArgumentsCount(1)
-                .Argument(0).IsFunction().Bind(imageCallback))
-            {
-                NanCallback *callback = new NanCallback(imageCallback);
-                NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatJpeg));
-                NanReturnUndefined();
-            }
-
-            NanReturnValue(NanFalse());
+            NanCallback *callback = new NanCallback(imageCallback);
+            NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatJpeg));
+            NanReturnUndefined();
         }
-        catch (ArgumentMismatchException& exc)
+        else if (!error.empty())
         {
-            NanThrowTypeError(exc.what());
+            NanThrowTypeError(error.c_str());
         }
     }
 
     NAN_METHOD(ImageView::AsPngStream)
     {
         SETUP_FUNCTION(ImageView);
-        try
+        Local<Function> imageCallback;
+        std::string error;
+
+        if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(1)
+            .Argument(0).IsFunction().Bind(imageCallback))
         {
-            Local<Function> imageCallback;
-
-            if (NanCheck(args)
-                .ArgumentsCount(1)
-                .Argument(0).IsFunction().Bind(imageCallback))
-            {
-                NanCallback *callback = new NanCallback(imageCallback);
-                NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatPng));
-                NanReturnUndefined();
-            }
-
-            NanReturnValue(NanFalse());
+            NanCallback *callback = new NanCallback(imageCallback);
+            NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatPng));
+            NanReturnUndefined();
         }
-        catch (ArgumentMismatchException& exc)
+        else if (!error.empty())
         {
-            NanThrowTypeError(exc.what());
+            NanThrowTypeError(error.c_str());
         }
     }
 
@@ -261,24 +255,21 @@ namespace cloudcv
     NAN_METHOD(ImageView::AsPngDataUri)
     {
         SETUP_FUNCTION(ImageView);
-        try
+        Local<Function> imageCallback;
+        std::string error;
+
+        if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(1)
+            .Argument(0).IsFunction().Bind(imageCallback))
         {
-            Local<Function> imageCallback;
-
-            if (NanCheck(args)
-                .ArgumentsCount(1)
-                .Argument(0).IsFunction().Bind(imageCallback))
-            {
-                NanCallback *callback = new NanCallback(imageCallback);
-                NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatPng, true));
-                NanReturnValue(NanTrue());
-            }
-
-            NanReturnValue(NanFalse());
+            NanCallback *callback = new NanCallback(imageCallback);
+            NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatPng, true));
+            NanReturnValue(NanTrue());
         }
-        catch (ArgumentMismatchException& exc)
+        else if (!error.empty())
         {
-            NanThrowTypeError(exc.what());
+            NanThrowTypeError(error.c_str());
         }
     }
 
@@ -337,24 +328,21 @@ namespace cloudcv
     NAN_METHOD(ImageView::AsJpegDataUri)
     {
         SETUP_FUNCTION(ImageView);
-        try
+        Local<Function> imageCallback;
+        std::string error;
+
+        if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(1)
+            .Argument(0).IsFunction().Bind(imageCallback))
         {
-            Local<Function> imageCallback;
-
-            if (NanCheck(args)
-                .ArgumentsCount(1)
-                .Argument(0).IsFunction().Bind(imageCallback))
-            {
-                NanCallback *callback = new NanCallback(imageCallback);
-                NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatJpeg, true));
-                NanReturnValue(NanTrue());
-            }
-
-            NanReturnValue(NanFalse());
+            NanCallback *callback = new NanCallback(imageCallback);
+            NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatJpeg, true));
+            NanReturnValue(NanTrue());
         }
-        catch (ArgumentMismatchException& exc)
+        else if (!error.empty())
         {
-            NanThrowTypeError(exc.what());
+            NanThrowTypeError(error.c_str());
         }
     }
 

@@ -101,8 +101,7 @@
                     ],
 
                     "cflags": [
-                        "-std=gnu++11",
-                        "-fexceptions"
+                        "-std=gnu++11 -fexceptions"
                     ],
                     
                     'libraries': [
