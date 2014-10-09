@@ -3,6 +3,8 @@
 #include "framework/NanCheck.hpp"
 #include "framework/Job.hpp"
 #include "framework/marshal/node_object_builder.hpp"
+#include "framework/ImageSource.hpp"
+#include "framework/Async.hpp"
 
 #include <node.h>
 #include <v8.h>
@@ -131,41 +133,6 @@ namespace cloudcv
         std::ostringstream      mDataUriString;
     };
 
-    class DecodeImageTask : public Job
-    {
-    public:
-        DecodeImageTask(std::string imagePath, NanCallback * callback)
-            : Job(callback)
-            , mImagePath(imagePath)
-        {
-        }
-
-        virtual ~DecodeImageTask()
-        {
-        }
-
-    protected:
-
-        virtual void ExecuteNativeCode()
-        {
-            mImage = cv::imread(mImagePath);
-            if (mImage.empty())
-                SetErrorMessage("Cannot load or decode image");                
-        }
-
-        // This function is executed in the main V8/JavaScript thread. That means it's
-        // safe to use V8 functions again. Don't forget the HandleScope!
-        virtual Local<Value> CreateCallbackResult()
-        {
-            NanEscapableScope();
-            return NanEscapeScope(ImageView::ViewForImage(mImage));
-        }
-
-    private:
-        std::string mImagePath;
-        cv::Mat     mImage;
-    };
-
     v8::Persistent<v8::FunctionTemplate> ImageView::constructor;
 
     ImageView::ImageView(const cv::Mat& image)
@@ -252,6 +219,42 @@ namespace cloudcv
         catch (ArgumentMismatchException& exc)
         {
             return NanThrowTypeError(exc.what());
+        }
+    }
+
+    NAN_METHOD(ImageView::Thumbnail)
+    {
+        SETUP_FUNCTION(ImageView);
+        Local<Function> imageCallback;
+
+        int w, h;
+        std::string error;
+        if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(3)
+            .Argument(0).Bind(w)
+            .Argument(1).Bind(h)
+            .Argument(2).IsFunction().Bind(imageCallback))
+        {
+            NanCallback *callback = new NanCallback(imageCallback);
+
+            auto task = [w,h, self](AsyncReturnHelper& result, AsyncErrorFunction error) {
+                if (self->mImage.empty()) {
+                     error("Image is empty");
+                     return;                    
+                }
+
+                cv::Mat thumb;
+                cv::resize(self->mImage, thumb, cv::Size(w,h));
+                result(thumb);
+            };
+            
+            Async(task, callback);
+            NanReturnUndefined();
+        }
+        else if (!error.empty())
+        {
+            return NanThrowTypeError(error.c_str());
         }
     }
 
@@ -374,6 +377,8 @@ namespace cloudcv
         NODE_SET_PROTOTYPE_METHOD(tpl, "asPngDataUri", ImageView::AsPngDataUri);
         NODE_SET_PROTOTYPE_METHOD(tpl, "asObject", ImageView::AsObject);
 
+        NODE_SET_PROTOTYPE_METHOD(tpl, "thumbnail", ImageView::Thumbnail);
+
         NanAssignPersistent(constructor, tpl);
         //constructor = Persistent<Function>::New();
         exports->Set(NanNew<String>("ImageView"), NanNew<FunctionTemplate>(constructor)->GetFunction());
@@ -385,26 +390,48 @@ namespace cloudcv
         TRACE_FUNCTION;
         NanEscapableScope();
 
-        try
+        std::string     imagePath;
+        std::string     error;
+        Local<Object>   imageBuffer;
+        Local<Function> loadCallback;
+
+        if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(2)
+            .Argument(0).IsString().Bind(imagePath)
+            .Argument(1).IsFunction().Bind(loadCallback))
         {
-            std::string     imagePath;
-            Local<Function> loadCallback;
-
-            if (NanCheck(args)
-                .ArgumentsCount(2)
-                .Argument(0).IsString().Bind(imagePath)
-                .Argument(1).IsFunction().Bind(loadCallback))
-            {
-                NanCallback *callback = new NanCallback(loadCallback);
-                NanAsyncQueueWorker(new DecodeImageTask(imagePath, callback));
-                NanReturnValue(NanTrue());
-            }
-
-            NanReturnValue(NanFalse());
+            NanCallback *callback = new NanCallback(loadCallback);
+            auto task = [imagePath](AsyncReturnHelper& result, AsyncErrorFunction error) {
+                cv::Mat image = CreateImageSource(imagePath)->getImage();
+                if (image.empty())
+                    error("Cannot read image from the file");
+                else
+                    result(image);
+            };
+            
+            Async(task, callback);
         }
-        catch (ArgumentMismatchException exc)
+        else if (NanCheck(args)
+            .Error(&error)
+            .ArgumentsCount(2)
+            .Argument(0).IsBuffer().Bind(imageBuffer)
+            .Argument(1).IsFunction().Bind(loadCallback))
         {
-            return NanThrowTypeError(exc.what());
+            NanCallback *callback = new NanCallback(loadCallback);
+            auto task = [imagePath](AsyncReturnHelper& result, AsyncErrorFunction error) {
+                cv::Mat image = CreateImageSource(imagePath)->getImage();
+                if (image.empty())
+                    error("Cannot decode image from the buffer");
+                else
+                    result(image);
+            };
+            
+            Async(task, callback);
+        }
+        else if (!error.empty())
+        {
+            return NanThrowTypeError(error.c_str());                
         }
     }
 

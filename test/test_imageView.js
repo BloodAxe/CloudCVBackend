@@ -67,5 +67,17 @@ describe('cv', function() {
             //console.log(inspect(object));
             done();
         });
+
+        it('thumbnail(128,128)', function(done) {
+            var imview = new cloudcv.ImageView("test/opencv-logo.jpg");
+            imview.thumbnail(128, 128, function(error, thumbnail) {
+                console.log(error, thumbnail);
+                assert.equal(error, null, error);
+                assert.equal(128, thumbnail.width());
+                assert.equal(128, thumbnail.height());
+                done();
+            });
+        });
+
     });
 });
