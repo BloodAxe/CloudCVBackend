@@ -99,9 +99,9 @@
                     'libraries': [
                         "<!(node -e \"require('native-opencv').libraries()\")"
                     ],
-                    
+
                     "cflags": [
-                        "-std=c++11", "-stdlib=libc++"
+                        "-std=gnu++11"
                     ],
                     
                     'libraries': [
