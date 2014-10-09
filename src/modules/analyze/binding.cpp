@@ -94,7 +94,7 @@ namespace cloudcv
         {
             NanCallback *callback = new NanCallback(imageCallback);
             NanAsyncQueueWorker(new ImageAnalyzeTask(CreateImageSource(imageBuffer), callback));
-            NanReturnValue(NanTrue());
+            NanReturnUndefined();
         }
         else if (NanCheck(args)
             .Error(&error)
@@ -104,7 +104,7 @@ namespace cloudcv
         {
             NanCallback *callback = new NanCallback(imageCallback);
             NanAsyncQueueWorker(new ImageAnalyzeTask(CreateImageSource(imageFile), callback));
-            NanReturnValue(NanTrue());
+            NanReturnUndefined();
         }
         else if (!error.empty())
         {

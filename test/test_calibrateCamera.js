@@ -14,27 +14,23 @@ describe('cv', function() {
 
             var patternSize = { width:9, height:6 };
 
-            var retVal = cloudcv.calibrationPatternDetect(imageData, patternSize, 'CHESSBOARD', function(error, result) {
+            cloudcv.calibrationPatternDetect(imageData, patternSize, 'CHESSBOARD', function(error, result) {
 
                 assert.equal(null, error);
                 assert.notEqual(null, result);
                 done();
             });
-
-            assert.equal(true, retVal);
         });
 
         it('detectChessboardGrid (File)', function(done) {
             var patternSize = { width:9, height:6 };
 
-            var retVal = cloudcv.calibrationPatternDetect('test/grid-pattern.png', patternSize, 'CHESSBOARD', function(error, result) {
+            cloudcv.calibrationPatternDetect('test/grid-pattern.png', patternSize, 'CHESSBOARD', function(error, result) {
 
                 assert.equal(null, error);
                 assert.notEqual(null, result);
                 done();
             });
-
-            assert.equal(true, retVal);
         });
 
         it('detectCirclesGrid', function(done) {
@@ -42,13 +38,11 @@ describe('cv', function() {
             assert.notEqual(null, imageData);
             var patternSize = { width:8, height:9 };
 
-            var retVal = cloudcv.calibrationPatternDetect(imageData, patternSize, 'CIRCLES_GRID', function(error, result) {
+            cloudcv.calibrationPatternDetect(imageData, patternSize, 'CIRCLES_GRID', function(error, result) {
                 assert.equal(null, error);
                 assert.notEqual(null, result);
                 done();
             }); 
-
-            //assert.equal(undefined, retVal);
         });
 
         it('detectAsymetricCirclesGrid', function(done) {
@@ -56,13 +50,11 @@ describe('cv', function() {
             assert.notEqual(null, imageData);
             var patternSize = { width:8, height:9 };
 
-            var retVal = cloudcv.calibrationPatternDetect(imageData, patternSize, 'ACIRCLES_GRID', function(error, result) {
+            cloudcv.calibrationPatternDetect(imageData, patternSize, 'ACIRCLES_GRID', function(error, result) {
                 assert.equal(null, error);
                 assert.notEqual(null, result);
                 done();
             }); 
-
-            //assert.equal(undefined, retVal);
         });
         
         it('calibrateChessboard', function(done) {

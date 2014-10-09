@@ -411,6 +411,7 @@ namespace cloudcv
             };
             
             Async(task, callback);
+            NanReturnUndefined();
         }
         else if (NanCheck(args)
             .Error(&error)
@@ -428,6 +429,7 @@ namespace cloudcv
             };
             
             Async(task, callback);
+            NanReturnUndefined();
         }
         else if (!error.empty())
         {
