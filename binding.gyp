@@ -100,9 +100,8 @@
                         "<!(node -e \"require('native-opencv').libraries()\")"
                     ],
 
-                    "cflags": [
-                        "-std=gnu++11 -fexceptions"
-                    ],
+                    'cflags_cc!': [ '-fno-exceptions' ],
+                    "cflags": [ '-std=gnu++11', '-fexceptions' ],
                     
                     'libraries': [
                     ]
