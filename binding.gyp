@@ -96,15 +96,13 @@
                         'TARGET_PLATFORM_LINUX',
                     ],
 
+                    'libraries!': [ '-undefined dynamic_lookup' ],
                     'libraries': [
                         "<!(node -e \"require('native-opencv').libraries()\")"
                     ],
 
                     'cflags_cc!': [ '-fno-exceptions' ],
-                    "cflags": [ '-std=gnu++11', '-fexceptions' ],
-                    
-                    'libraries': [
-                    ]
+                    "cflags": [ '-std=gnu++11', '-fexceptions' ],                    
                 }]       
             ]
         }
