@@ -242,7 +242,7 @@ namespace cloudcv
         else if (!error.empty())
         {
             LOG_TRACE_MESSAGE(error);
-            return NanThrowTypeError(error.c_str());
+            NanThrowTypeError(error.c_str());
         }
     }
 
@@ -293,7 +293,7 @@ namespace cloudcv
         }
         else if (!error.empty())
         {
-            return NanThrowTypeError(error.c_str());
+            NanThrowTypeError(error.c_str());
         }
     }
 }

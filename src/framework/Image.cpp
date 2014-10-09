@@ -187,14 +187,14 @@ namespace cloudcv
             {
                 NanCallback *callback = new NanCallback(imageCallback);
                 NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatJpeg));
-                NanReturnValue(NanTrue());
+                NanReturnUndefined();
             }
 
             NanReturnValue(NanFalse());
         }
         catch (ArgumentMismatchException& exc)
         {
-            return NanThrowTypeError(exc.what());
+            NanThrowTypeError(exc.what());
         }
     }
 
@@ -211,14 +211,14 @@ namespace cloudcv
             {
                 NanCallback *callback = new NanCallback(imageCallback);
                 NanAsyncQueueWorker(new EncodeImageTask(self->mImage, callback, EncodeOutputFormatPng));
-                NanReturnValue(NanTrue());
+                NanReturnUndefined();
             }
 
             NanReturnValue(NanFalse());
         }
         catch (ArgumentMismatchException& exc)
         {
-            return NanThrowTypeError(exc.what());
+            NanThrowTypeError(exc.what());
         }
     }
 
@@ -254,7 +254,7 @@ namespace cloudcv
         }
         else if (!error.empty())
         {
-            return NanThrowTypeError(error.c_str());
+            NanThrowTypeError(error.c_str());
         }
     }
 
@@ -278,7 +278,7 @@ namespace cloudcv
         }
         catch (ArgumentMismatchException& exc)
         {
-            return NanThrowTypeError(exc.what());
+            NanThrowTypeError(exc.what());
         }
     }
 
@@ -354,7 +354,7 @@ namespace cloudcv
         }
         catch (ArgumentMismatchException& exc)
         {
-            return NanThrowTypeError(exc.what());
+            NanThrowTypeError(exc.what());
         }
     }
 
@@ -433,7 +433,7 @@ namespace cloudcv
         }
         else if (!error.empty())
         {
-            return NanThrowTypeError(error.c_str());                
+            NanThrowTypeError(error.c_str());                
         }
     }
 
