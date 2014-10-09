@@ -22,7 +22,6 @@ namespace cloudcv
         std::array<cv::Scalar, 255> histogram;
         int                         uniqieColors;
         int                         reducedColors;
-        cv::Mat                     quantizedColors;
         std::vector<DominantColor> dominantColors;
         RGBDistribution            colorDeviation;
     };

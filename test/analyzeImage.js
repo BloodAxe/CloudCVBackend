@@ -14,11 +14,6 @@ describe('cv', function() {
                 assert.notStrictEqual(result, undefined);
                 assert.equal(4, result.dominantColors.length);
                 
-                result.quantizedColors.asJpegStream(function(err, jpegImg) {
-                    fs.writeFile('quantizedColors.jpg', new Buffer(jpegImg));
-                    done();
-                });
-                /**/
             });
         });
 
@@ -30,12 +25,6 @@ describe('cv', function() {
                    
                 assert.notStrictEqual(result, undefined);
                 assert.equal(4, result.dominantColors.length);
-                
-                result.quantizedColors.asJpegStream(function(err, jpegImg) {
-                    fs.writeFile('quantizedColors.jpg', new Buffer(jpegImg));
-                    done();
-                });
-                /**/
             });
         });
 

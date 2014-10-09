@@ -40,7 +40,6 @@ namespace cloudcv
         value.intensity = distribution(input);
         value.rmsContrast = ComputeRmsContrast(input);
         
-        //value.quantizedColors = colorsExtractor.getImage();
         value.dominantColors = colorsExtractor.mainColors;
 
         value.uniqieColors = colorsExtractor.getUniqueColors();

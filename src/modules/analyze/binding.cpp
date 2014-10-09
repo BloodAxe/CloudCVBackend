@@ -177,7 +177,6 @@ namespace cloudcv
         resultWrapper["histogram"] = res.histogram;
         resultWrapper["intensity"] = res.intensity;
         resultWrapper["reducedColors"] = res.reducedColors;
-        resultWrapper["quantizedColors"] = res.quantizedColors;
         resultWrapper["rmsContrast"] = res.rmsContrast;
         resultWrapper["uniqieColors"] = res.uniqieColors;
 
