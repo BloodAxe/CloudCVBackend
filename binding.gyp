@@ -67,7 +67,7 @@
             'include_dirs': [
               'src/',
               "<!(node -e \"require('nan')\")",
-              "<!(node -e \"require('opencv').include_dirs()\")"
+              "<!(node -e \"require('native-opencv').include_dirs()\")"
             ],
 
             'conditions': [
@@ -77,12 +77,9 @@
                     'defines': [
                         'TARGET_PLATFORM_MAC',
                     ],
-
-                    'include_dirs': [
-                    ],
                     
                     'libraries': [
-                        "<!(node -e \"require('opencv').libraries()\")"
+                        "<!(node -e \"require('native-opencv').libraries()\")"
                     ],
 
                     'xcode_settings': {
@@ -99,10 +96,10 @@
                         'TARGET_PLATFORM_LINUX',
                     ],
 
-                    'include_dirs': [
-                        '/usr/local/include'
+                    'libraries': [
+                        "<!(node -e \"require('native-opencv').libraries()\")"
                     ],
-
+                    
                     "cflags": [
                         "-std=c++11", "-stdlib=libc++"
                     ],
