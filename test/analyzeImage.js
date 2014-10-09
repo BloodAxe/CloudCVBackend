@@ -13,7 +13,7 @@ describe('cv', function() {
                    
                 assert.notStrictEqual(result, undefined);
                 assert.equal(4, result.dominantColors.length);
-                
+                done();
             });
         });
 
@@ -25,6 +25,7 @@ describe('cv', function() {
                    
                 assert.notStrictEqual(result, undefined);
                 assert.equal(4, result.dominantColors.length);
+                done();
             });
         });
 
