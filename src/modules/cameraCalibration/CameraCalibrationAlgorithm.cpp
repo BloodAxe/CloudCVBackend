@@ -25,7 +25,7 @@ namespace cloudcv {
 
                if (false && m_patternfound)
                {
-                   const cv::TermCriteria tc = cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1);
+                   const cv::TermCriteria tc = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 30, 0.1);
                    cv::cornerSubPix(frame, corners2d, cv::Size(5, 5), cv::Size(-1, -1), tc);
                }
             };  break;
@@ -191,7 +191,7 @@ namespace cloudcv {
         for (size_t i = 0; i < objectPoints.size(); i++)
         {
             cv::projectPoints(cv::Mat(objectPoints[i]), rvecs[i], tvecs[i], cameraMatrix, distCoeffs, imagePoints2);
-            err = cv::norm(cv::Mat(imagePoints[i]), cv::Mat(imagePoints2), CV_L2);
+            err = cv::norm(cv::Mat(imagePoints[i]), cv::Mat(imagePoints2), cv::NORM_L2);
             int n = (int)objectPoints[i].size();
             perViewErrors[i] = (float)std::sqrt(err*err / n);
             totalErr += err*err;

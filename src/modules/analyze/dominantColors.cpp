@@ -97,32 +97,6 @@ namespace cloudcv
             mainColors.push_back(c);
 
         }
-
-        cv::Mat visImg = getImage();
-        int d = 0;
-    }
-
-    cv::Mat DominantColorsExtractor::getImage() const
-    {
-        int rowWidth = 250;
-        int rowHeight = 100;
-
-        cv::Mat img(mainColors.size() * rowHeight, rowWidth, CV_8UC3);
-
-        for (size_t i = 0; i < mainColors.size(); i++)
-        {
-            DominantColor c = mainColors[i];
-
-            cv::Scalar clr = CV_RGB(c.color.val[2], c.color.val[1], c.color.val[0]);
-
-            cv::rectangle(img, cv::Rect(0, i * rowHeight, rowWidth, rowHeight), clr, -1);
-            std::ostringstream os;
-            os << "Pixels:" << mainColors[i].totalPixels << " Error: " << c.error;
-
-            cv::putText(img, os.str(), cv::Point(10, i * rowHeight + 20), CV_FONT_HERSHEY_PLAIN, 1, CV_RGB(1, 1, 1), 1, CV_AA);
-        }
-
-        return img;
     }
 
     DominantColor DominantColorsExtractor::computeFinalColor(const std::set<Color>& colorsSet) const

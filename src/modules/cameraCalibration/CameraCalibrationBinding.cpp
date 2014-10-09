@@ -217,7 +217,6 @@ namespace cloudcv
                 patternSize, 
                 pattern, 
                 nanCallback));
-            NanReturnUndefined();
         }
         else if (NanCheck(args)
             .Error(&error)
@@ -237,13 +236,14 @@ namespace cloudcv
                 patternSize, 
                 pattern, 
                 nanCallback));
-            NanReturnUndefined();
         }
         else if (!error.empty())
         {
             LOG_TRACE_MESSAGE(error);
             NanThrowTypeError(error.c_str());
         }
+
+        NanReturnUndefined();
     }
 
     NAN_METHOD(calibrateCamera)
@@ -274,7 +274,6 @@ namespace cloudcv
 
             NanCallback *nanCallback = new NanCallback(callback);
             NanAsyncQueueWorker(new ComputeIntrinsicParametersTask(imageFiles, patternSize, pattern, nanCallback));
-            NanReturnUndefined();
         } else if (NanCheck(args)
             .Error(&error)
             .ArgumentsCount(6)
@@ -289,11 +288,12 @@ namespace cloudcv
         {
             NanCallback *nanCallback = new NanCallback(callback);
             NanAsyncQueueWorker(new ComputeIntrinsicParametersTask(imageCorners, imageSize, patternSize, pattern, nanCallback));
-            NanReturnUndefined();
         }
         else if (!error.empty())
         {
             NanThrowTypeError(error.c_str());
         }
+
+	NanReturnUndefined();
     }
 }

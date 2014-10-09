@@ -45,8 +45,6 @@ namespace cloudcv
 
         std::vector<DominantColor> mainColors;
 
-        cv::Mat getImage() const;
-
         RGBDistribution getColorDeviation() const;
 
         int getUniqueColors() const;

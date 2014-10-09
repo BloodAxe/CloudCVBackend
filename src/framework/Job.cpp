@@ -20,6 +20,10 @@ namespace cloudcv {
         {
             ExecuteNativeCode();
         }
+	catch (cv::Exception& exc)
+	{
+	    SetErrorMessage(exc.what());
+	}
         catch (std::runtime_error& e)
         {
             SetErrorMessage(e.what());
