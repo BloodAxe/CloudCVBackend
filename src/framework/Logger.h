@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include <iostream>
 #include <iterator>
 #include <opencv2/opencv.hpp>
