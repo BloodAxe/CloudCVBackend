@@ -4,6 +4,7 @@
         'default_configuration': 'Release',
     },
 
+
     'targets': [
         {
             'target_name': "cloudcv",
@@ -70,16 +71,16 @@
               "<!(node -e \"require('native-opencv').include_dirs()\")"
             ],
 
-            'conditions': [
+            'libraries': [
+                ">!(node -e \"require('native-opencv').libraries()\")"
+            ],
+
+            'target_conditions': [
             
                 ['OS=="mac"', {
                 
                     'defines': [
                         'TARGET_PLATFORM_MAC',
-                    ],
-                    
-                    'libraries': [
-                        "<!(node -e \"require('native-opencv').libraries()\")"
                     ],
 
                     'xcode_settings': {
@@ -97,13 +98,17 @@
                     ],
 
                     'libraries!': [ '-undefined dynamic_lookup' ],
-                    'libraries': [
-                        "<!(node -e \"require('native-opencv').libraries()\")"
-                    ],
 
                     'cflags_cc!': [ '-fno-exceptions' ],
                     "cflags": [ '-std=gnu++11', '-fexceptions' ],                    
-                }]       
+                }],
+
+                ['OS=="win"', {
+                    'defines': [
+                        'TARGET_PLATFORM_WINDOWS',
+                    ]             
+                }]
+
             ]
         }
     ]
