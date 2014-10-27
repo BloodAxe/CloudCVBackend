@@ -4,7 +4,7 @@
   "description": "CloudCV backend module",
   "author": "Eugene Khvedchenya <ekhvedchenya@gmail.com>",
   "license": "MIT",
-  "main": ".cloudcv.js",
+  "main": "cloudcv.js",
 
   "scripts": {
     "test": "mocha test/*.js"
