@@ -13,7 +13,7 @@ bool MarshalToNative(V8Result inVal, std::string& outVal)
     TRACE_FUNCTION;
     
     if (inVal->IsString()) {
-        NanAsciiString cStr = NanAsciiString(inVal);
+        NanAsciiString cStr(inVal);
         outVal = std::string(*cStr, cStr.Size());
         return true;
     }
