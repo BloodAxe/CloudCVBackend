@@ -178,7 +178,7 @@ namespace cloudcv
         resultWrapper["intensity"] = res.intensity;
         resultWrapper["reducedColors"] = res.reducedColors;
         resultWrapper["rmsContrast"] = res.rmsContrast;
-        resultWrapper["uniqieColors"] = res.uniqieColors;
+        resultWrapper["uniqueColors"] = res.uniqieColors;
 
         return NanEscapeScope(structure);
     }
