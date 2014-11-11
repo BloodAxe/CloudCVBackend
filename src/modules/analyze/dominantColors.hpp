@@ -32,6 +32,9 @@ namespace cloudcv
 
         float     interclassVariance;
         float     error;
+
+        // Html string representation like #FFFFFF
+        std::string html() const;
     };
 
     std::ostream& operator<<(std::ostream& out, const Color& res);

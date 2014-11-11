@@ -1,4 +1,6 @@
 #include "dominantColors.hpp"
+#include <iomanip>
+#include <sstream>
 
 namespace cloudcv
 {
@@ -40,6 +42,15 @@ namespace cloudcv
         int other_b = (other.hash >> 16) & 0xFF;
 
         return SQR(r - other_r) + SQR(g - other_g) + SQR(b - other_b);
+    }
+
+    std::string DominantColor::html() const
+    {
+        std::ostringstream sStream;
+        sStream << "#" << std::hex << std::setw(2) << color[0]
+                       << std::hex << std::setw(2) << color[1]
+                       << std::hex << std::setw(2) << color[2];
+        return sStream.str();
     }
 
     void DominantColorsExtractor::process(const cv::Mat_<cv::Vec3b>& bgrImage)

@@ -143,6 +143,7 @@ namespace cloudcv
         resultWrapper["entropy"] = d.error;
         resultWrapper["max"] = d.interclassVariance;
         resultWrapper["min"] = d.totalPixels;
+        resultWrapper["html"] = d.html();
 
         return NanEscapeScope(structure);
     }
