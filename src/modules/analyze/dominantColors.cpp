@@ -47,9 +47,9 @@ namespace cloudcv
     std::string DominantColor::html() const
     {
         std::ostringstream sStream;
-        sStream << "#" << std::hex << std::setw(2) << color[0]
-                       << std::hex << std::setw(2) << color[1]
-                       << std::hex << std::setw(2) << color[2];
+        sStream << "#" << std::hex << std::setw(2) << (int)color[0]
+                       << std::hex << std::setw(2) << (int)color[1]
+                       << std::hex << std::setw(2) << (int)color[2];
         return sStream.str();
     }
 
