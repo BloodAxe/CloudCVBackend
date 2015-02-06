@@ -170,7 +170,10 @@ namespace cloudcv
     NAN_METHOD(ImageView::Stride)
     {
         SETUP_FUNCTION(ImageView);
-        size_t stride = self->mImage.step[0];
+        // Temporary hack:
+        // https://github.com/rvagg/nan/issues/270
+        // https://github.com/BloodAxe/CloudCV/issues/3
+        uint32_t stride = static_cast<uint32_t>(self->mImage.step[0]);
         NanReturnValue(NanNew<v8::Integer>(stride));
     }
 
