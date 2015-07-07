@@ -1,11 +1,8 @@
-CloudCVBackend
-==============
+DEPRECATED
+=======
+This project has been deprecated and should not be used. 
+**Please update your bookmarks and use [CloudCV-Bootstrap](https://github.com/CloudCV/cloudcv-bootstrap) started template.**
 
-A C++ backend module for CloudCV. This library exports selected image processing algorithms to Node.js. 
-It does data marshalling and asynchronous processing according to Node.js paradigm.
+[CloudCV-Bootstrap](https://github.com/CloudCV/cloudcv-bootstrap)
 
-
-## Continuous integration status 
-[![Build Status](https://travis-ci.org/BloodAxe/CloudCVBackend.png?branch=master)](https://travis-ci.org/BloodAxe/CloudCVBackend)
-
-Regular builds and testing provided by https://travis-ci.org.
+More information can be found here: [Introducing CloudCV Bootstrap](http://computer-vision-talks.com/articles/introducing-cloudcv-bootstrap/).
