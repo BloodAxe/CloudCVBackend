@@ -40,7 +40,7 @@ inline std::ostream& operator<<(std::ostream& out, const std::array<T, Size>& v)
 inline std::ostream& operator<<(std::ostream& out, const cv::Mat& res) {
     return out << "cv::Mat [ ... ]";
 }
-/*
+
 template <typename T>
 inline std::ostream& operator<<(std::ostream& out, const cv::Size_<T>& res) {
     return out << "cv::Size { width:" << res.width << ", height:" << res.height << "}";
